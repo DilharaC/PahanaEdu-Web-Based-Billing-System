@@ -1,0 +1,180 @@
+package com.pahanaedu.dao;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.pahanaedu.model.Product;
+
+public class ProductDAO {
+
+    public void addProduct(Product product, Connection conn) throws SQLException {
+        String query = "INSERT INTO product (name, description, category, price, quantity, available) VALUES (?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setString(1, product.getName());
+            ps.setString(2, product.getDescription());
+            ps.setString(3, product.getCategory());
+            ps.setDouble(4, product.getPrice());
+            ps.setInt(5, product.getQuantity());
+            ps.setBoolean(6, product.isAvailable());
+            ps.executeUpdate();
+        }
+    }
+
+    public List<Product> getAllProducts(Connection conn) throws SQLException {
+        List<Product> products = new ArrayList<>();
+        String query = "SELECT * FROM product";
+
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            while (rs.next()) {
+                products.add(new Product(
+                    rs.getInt("product_id"),
+                    rs.getString("name"),
+                    rs.getString("description"),
+                    rs.getString("category"),
+                    rs.getDouble("price"),
+                    rs.getInt("quantity"),
+                    rs.getBoolean("available")
+                ));
+            }
+        }
+        return products;
+    }
+
+    public Product getProductById(int productId, Connection conn) throws SQLException {
+        String query = "SELECT * FROM product WHERE product_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setInt(1, productId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new Product(
+                        rs.getInt("product_id"),
+                        rs.getString("name"),
+                        rs.getString("description"),
+                        rs.getString("category"),
+                        rs.getDouble("price"),
+                        rs.getInt("quantity"),
+                        rs.getBoolean("available")
+                    );
+                }
+            }
+        }
+        return null;
+    }
+
+    public void updateProduct(Product product, Connection conn) throws SQLException {
+        String query = "UPDATE product SET name=?, description=?, category=?, price=?, quantity=?, available=? WHERE product_id=?";
+        try (PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setString(1, product.getName());
+            ps.setString(2, product.getDescription());
+            ps.setString(3, product.getCategory());
+            ps.setDouble(4, product.getPrice());
+            ps.setInt(5, product.getQuantity());
+            ps.setBoolean(6, product.isAvailable());
+            ps.setInt(7, product.getProductId());
+            ps.executeUpdate();
+        }
+    }
+
+    public void deleteProduct(int productId, Connection conn) throws SQLException {
+        String query = "DELETE FROM product WHERE product_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setInt(1, productId);
+            ps.executeUpdate();
+        }
+    }
+
+    public List<Product> getProductsByCategory(String category, Connection conn) throws SQLException {
+        List<Product> products = new ArrayList<>();
+        String query = "SELECT * FROM product WHERE category = ?";
+        try (PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setString(1, category);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    products.add(new Product(
+                        rs.getInt("product_id"),
+                        rs.getString("name"),
+                        rs.getString("description"),
+                        rs.getString("category"),
+                        rs.getDouble("price"),
+                        rs.getInt("quantity"),
+                        rs.getBoolean("available")
+                    ));
+                }
+            }
+        }
+        return products;
+    }
+
+    public List<String> getAllCategories(Connection conn) throws SQLException {
+        List<String> categories = new ArrayList<>();
+        String query = "SELECT DISTINCT category FROM product";
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            while (rs.next()) {
+                categories.add(rs.getString("category"));
+            }
+        }
+        return categories;
+    }
+
+    public List<Product> searchProductsByNameOrCategory(String keyword, Connection conn) throws SQLException {
+        List<Product> products = new ArrayList<>();
+        String query = "SELECT * FROM product WHERE LOWER(name) LIKE ? OR LOWER(category) LIKE ?";
+        try (PreparedStatement ps = conn.prepareStatement(query)) {
+            String likePattern = "%" + keyword.toLowerCase() + "%";
+            ps.setString(1, likePattern);
+            ps.setString(2, likePattern);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    products.add(new Product(
+                        rs.getInt("product_id"),
+                        rs.getString("name"),
+                        rs.getString("description"),
+                        rs.getString("category"),
+                        rs.getDouble("price"),
+                        rs.getInt("quantity"),
+                        rs.getBoolean("available")
+                    ));
+                }
+            }
+        }
+        return products;
+    }
+
+    public List<Product> searchProductsByNameOrCategoryAndCategory(String keyword, String category, Connection conn) throws SQLException {
+        List<Product> products = new ArrayList<>();
+        String query = "SELECT * FROM product WHERE (LOWER(name) LIKE ? OR LOWER(category) LIKE ?) AND category = ?";
+        try (PreparedStatement ps = conn.prepareStatement(query)) {
+            String likePattern = "%" + keyword.toLowerCase() + "%";
+            ps.setString(1, likePattern);
+            ps.setString(2, likePattern);
+            ps.setString(3, category);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    products.add(new Product(
+                        rs.getInt("product_id"),
+                        rs.getString("name"),
+                        rs.getString("description"),
+                        rs.getString("category"),
+                        rs.getDouble("price"),
+                        rs.getInt("quantity"),
+                        rs.getBoolean("available")
+                    ));
+                }
+            }
+        }
+        return products;
+    }
+    public int countProducts() throws SQLException {
+        String query = "SELECT COUNT(*) FROM product";
+        try (Connection conn = DBConnectionFactory.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query);
+             ResultSet rs = ps.executeQuery()) {
+            return rs.next() ? rs.getInt(1) : 0;
+        }
+    }
+}

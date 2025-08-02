@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN" "http://java.sun.com/dtd/web-app_2_3.dtd">
+
+<web-app id="WebApp_ID">
+
+	<display-name>pahanaedu-blilling-system</display-name>
+	<servlet>
+		<servlet-name>BookController</servlet-name>
+		<display-name>BookController</display-name>
+		<description></description>
+		<servlet-class>com.pahanaedu.controller.BookController</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>ProductController</servlet-name>
+		<display-name>ProductController</display-name>
+		<description></description>
+		<servlet-class>com.pahanaedu.controller.ProductController</servlet-class>
+	</servlet>
+	
+	<servlet>
+		<servlet-name>TestDashboard</servlet-name>
+		<display-name>TestDashboard</display-name>
+		<description></description>
+		<servlet-class>com.pahanaedu.controller.TestDashboard</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>DashboardController</servlet-name>
+		<display-name>DashboardController</display-name>
+		<description></description>
+		<servlet-class>com.pahanaedu.controller.DashboardController</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>StaffDashboardController</servlet-name>
+		<display-name>StaffDashboardController</display-name>
+		<description></description>
+		<servlet-class>com.pahanaedu.controller.StaffDashboardController</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>DashboardService</servlet-name>
+		<display-name>DashboardService</display-name>
+		<description></description>
+		<servlet-class>com.pahanaedu.service.DashboardService</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>CustomerController</servlet-name>
+		<display-name>CustomerController</display-name>
+		<description></description>
+		<servlet-class>com.pahanaedu.controller.CustomerController</servlet-class>
+	</servlet>
+	
+	
+	<servlet-mapping>
+		<servlet-name>BookController</servlet-name>
+		<url-pattern>/BookController</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>ProductController</servlet-name>
+		<url-pattern>/ProductController</url-pattern>
+	</servlet-mapping>
+	
+	<servlet-mapping>
+		<servlet-name>TestDashboard</servlet-name>
+		<url-pattern>/TestDashboard</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>DashboardController</servlet-name>
+		<url-pattern>/DashboardController</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>StaffDashboardController</servlet-name>
+		<url-pattern>/StaffDashboardController</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>DashboardService</servlet-name>
+		<url-pattern>/DashboardService</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>CustomerController</servlet-name>
+		<url-pattern>/CustomerController</url-pattern>
+	</servlet-mapping>
+	
+	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+		<welcome-file>index.htm</welcome-file>
+		<welcome-file>index.jsp</welcome-file>
+		<welcome-file>index.xhtml</welcome-file>
+		<welcome-file>default.html</welcome-file>
+		<welcome-file>default.htm</welcome-file>
+		<welcome-file>default.jsp</welcome-file>
+		<welcome-file>default.xhtml</welcome-file>
+	</welcome-file-list>
+	
+</web-app>
