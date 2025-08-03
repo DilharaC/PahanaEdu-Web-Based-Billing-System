@@ -4,6 +4,6 @@
 <body>
     <h1>Welcome to Product Management</h1>
     <p>Total Products: ${totalProducts}</p>
-    <a href="StaffDashboard?action=dashboard">Dashboard Home</a>
+    <a href="StaffLogin.jsp">Dashboard Home</a>
 </body>
 </html>

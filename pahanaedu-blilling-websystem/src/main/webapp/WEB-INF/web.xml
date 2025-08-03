@@ -47,6 +47,18 @@
 		<description></description>
 		<servlet-class>com.pahanaedu.controller.CustomerController</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>StaffLoginController</servlet-name>
+		<display-name>StaffLoginController</display-name>
+		<description></description>
+		<servlet-class>com.pahanaedu.controller.StaffLoginController</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>LogoutController</servlet-name>
+		<display-name>LogoutController</display-name>
+		<description></description>
+		<servlet-class>com.pahanaedu.controller.LogoutController</servlet-class>
+	</servlet>
 	
 	
 	<servlet-mapping>
@@ -77,6 +89,14 @@
 	<servlet-mapping>
 		<servlet-name>CustomerController</servlet-name>
 		<url-pattern>/CustomerController</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>StaffLoginController</servlet-name>
+		<url-pattern>/StaffLoginController</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>LogoutController</servlet-name>
+		<url-pattern>/LogoutController</url-pattern>
 	</servlet-mapping>
 	
 	<welcome-file-list>

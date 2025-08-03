@@ -164,25 +164,25 @@
 
   <div class="profile" title="Profile Menu">
     <img src="https://i.pravatar.cc/40" alt="Profile Picture" />
-    <span class="profile-name">${sessionScope.staffName}</span>
+    <span class="profile-name">${sessionScope.fullName}</span>
     <i class='bx bx-chevron-down' style="color: white;"></i>
 
     <div class="dropdown-menu">
       <a href="Profile">Profile</a>
-      <a href="ChangePassword">Change Password</a>
+      <a href="StaffLogin?action=changePassword">Change Password</a>
       <a href="javascript:void(0);" onclick="confirmLogout();">Logout <i class='bx bx-log-out'></i></a>
     </div>
   </div>
 </header>
 
 <div class="container">
-  <h1>Welcome, <span style="color:#388e3c;">${sessionScope.staffName}</span>!</h1>
+  <h1>Welcome, <span style="color:#388e3c;">${sessionScope.fullName}</span>!</h1>
 
   <div class="stats">
     <div class="stat-card">
       <i class='bx bx-box'></i>
       <div class="stat-info">
-        <h2>${totalProducts}</h2>
+        <h2><c:out value="${totalProducts != null ? totalProducts : 0}"/></h2>
         <p>Products</p>
       </div>
     </div>
@@ -190,7 +190,7 @@
     <div class="stat-card">
       <i class='bx bx-user'></i>
       <div class="stat-info">
-        <h2>${totalCustomers}</h2>
+        <h2><c:out value="${totalCustomers != null ? totalCustomers : 0}"/></h2>
         <p>Customers</p>
       </div>
     </div>
@@ -198,7 +198,7 @@
     <div class="stat-card">
       <i class='bx bx-receipt'></i>
       <div class="stat-info">
-        <h2>${billsToday}</h2>
+        <h2><c:out value="${billsToday != null ? billsToday : 0}"/></h2>
         <p>Bills Today</p>
       </div>
     </div>
