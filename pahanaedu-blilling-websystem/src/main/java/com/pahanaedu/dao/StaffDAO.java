@@ -1,9 +1,11 @@
 package com.pahanaedu.dao;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
 import com.pahanaedu.model.Staff;
 import com.pahanaedu.dao.DBConnectionFactory;
 
@@ -27,6 +29,7 @@ public class StaffDAO {
             ps.executeUpdate();
         }
     }
+
     public Staff validateLogin(String username, String password) {
         Staff staff = null;
         String sql = "SELECT * FROM staff WHERE username=? AND password=? AND status='active'";
@@ -44,6 +47,8 @@ public class StaffDAO {
                     staff.setUsername(rs.getString("username"));
                     staff.setFullName(rs.getString("full_name"));
                     staff.setEmail(rs.getString("email"));
+                    staff.setPhone(rs.getString("phone"));  // Added
+                    staff.setNic(rs.getString("nic"));      // Added
                     staff.setRole(rs.getString("role"));
                     staff.setStatus(rs.getString("status"));
                 }
@@ -53,6 +58,7 @@ public class StaffDAO {
         }
         return staff;
     }
+
     // Login: get staff by username and password
     public Staff login(String username, String password) {
         Staff staff = null;
@@ -71,6 +77,8 @@ public class StaffDAO {
                     staff.setPassword(rs.getString("password"));
                     staff.setFullName(rs.getString("full_name"));
                     staff.setEmail(rs.getString("email"));
+                    staff.setPhone(rs.getString("phone"));  // Added
+                    staff.setNic(rs.getString("nic"));      // Added
                     staff.setRole(rs.getString("role"));
                     staff.setStatus(rs.getString("status"));
                 }
@@ -82,7 +90,7 @@ public class StaffDAO {
         return staff;
     }
 
-    // Get staff by ID (for checking password)
+    // Get staff by ID (for checking password or profile)
     public Staff getStaffById(int staffId) {
         Staff staff = null;
         String sql = "SELECT * FROM staff WHERE staff_id = ?";
@@ -99,6 +107,8 @@ public class StaffDAO {
                     staff.setPassword(rs.getString("password"));
                     staff.setFullName(rs.getString("full_name"));
                     staff.setEmail(rs.getString("email"));
+                    staff.setPhone(rs.getString("phone"));  // Added
+                    staff.setNic(rs.getString("nic"));      // Added
                     staff.setRole(rs.getString("role"));
                     staff.setStatus(rs.getString("status"));
                 }
@@ -128,4 +138,61 @@ public class StaffDAO {
         }
         return false;
     }
+    
+    
+    
+   
+
+    public Staff findByEmail(String email) {
+        Staff staff = null;
+        String sql = "SELECT * FROM staff WHERE email = ?";
+
+        try (Connection conn = DBConnectionFactory.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    staff = extractStaff(rs);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return staff;
+    }
+
+    // Update reset token in DB
+    public boolean updateResetToken(int staffId, String token) {
+        String sql = "UPDATE staff SET reset_token = ? WHERE staff_id = ?";
+
+        try (Connection conn = DBConnectionFactory.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, token);
+            ps.setInt(2, staffId);
+
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // Helper to extract Staff object from ResultSet
+    private Staff extractStaff(ResultSet rs) throws SQLException {
+        Staff staff = new Staff();
+        staff.setStaffId(rs.getInt("staff_id"));
+        staff.setUsername(rs.getString("username"));
+        staff.setPassword(rs.getString("password"));
+        staff.setFullName(rs.getString("full_name"));
+        staff.setEmail(rs.getString("email"));
+        staff.setPhone(rs.getString("phone"));
+        staff.setNic(rs.getString("nic"));
+        staff.setJobTitle(rs.getString("job_title"));
+        staff.setRole(rs.getString("role"));
+        staff.setStatus(rs.getString("status"));
+        return staff;
+    }
+
 }

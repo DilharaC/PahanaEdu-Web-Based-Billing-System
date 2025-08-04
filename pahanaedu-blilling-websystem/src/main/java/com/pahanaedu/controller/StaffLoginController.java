@@ -1,19 +1,14 @@
 package com.pahanaedu.controller;
 
-import java.io.IOException;
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import com.pahanaedu.model.Staff;
 import com.pahanaedu.service.StaffService;
 
-/**
- * Servlet implementation class StaffLoginController
- */
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.*;
+import java.io.IOException;
+import java.util.UUID;
+
 @WebServlet("/StaffLogin")
 public class StaffLoginController extends HttpServlet {
 
@@ -21,7 +16,6 @@ public class StaffLoginController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // Show change password form if action=changePassword
         String action = request.getParameter("action");
         HttpSession session = request.getSession(false);
 
@@ -31,8 +25,9 @@ public class StaffLoginController extends HttpServlet {
                 return;
             }
             request.getRequestDispatcher("WEB-INF/view/ChangePassword.jsp").forward(request, response);
+
         } else {
-            // default to login page
+            // Default to login page
             response.sendRedirect("StaffLogin.jsp");
         }
     }
@@ -42,13 +37,11 @@ public class StaffLoginController extends HttpServlet {
         String action = request.getParameter("action");
 
         if ("changePassword".equalsIgnoreCase(action)) {
-            // Change password logic
             HttpSession session = request.getSession(false);
             if (session == null || session.getAttribute("staff") == null) {
                 response.sendRedirect("StaffLogin.jsp");
                 return;
             }
-
             Staff staff = (Staff) session.getAttribute("staff");
             String currentPassword = request.getParameter("currentPassword");
             String newPassword = request.getParameter("newPassword");
@@ -61,7 +54,6 @@ public class StaffLoginController extends HttpServlet {
             }
 
             boolean validCurrent = staffService.checkPassword(staff.getStaffId(), currentPassword);
-
             if (!validCurrent) {
                 request.setAttribute("error", "Current password is incorrect.");
                 request.getRequestDispatcher("WEB-INF/view/ChangePassword.jsp").forward(request, response);
@@ -69,22 +61,19 @@ public class StaffLoginController extends HttpServlet {
             }
 
             boolean updated = staffService.updatePassword(staff.getStaffId(), newPassword);
-
             if (updated) {
                 request.setAttribute("success", "Password changed successfully.");
-                request.getRequestDispatcher("WEB-INF/view/ChangePassword.jsp").forward(request, response);
             } else {
                 request.setAttribute("error", "Failed to change password. Try again.");
-                request.getRequestDispatcher("WEB-INF/view/ChangePassword.jsp").forward(request, response);
             }
+            request.getRequestDispatcher("WEB-INF/view/ChangePassword.jsp").forward(request, response);
 
         } else {
-            // Existing login logic
+            // Login logic
             String username = request.getParameter("username");
             String password = request.getParameter("password");
 
             Staff staff = staffService.login(username, password);
-
             if (staff != null) {
                 HttpSession session = request.getSession();
                 session.setAttribute("staff", staff);

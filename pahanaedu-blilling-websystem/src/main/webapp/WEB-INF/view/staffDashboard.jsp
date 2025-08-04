@@ -40,29 +40,61 @@
   .profile-name {
     font-weight: 600;
   }
-  .dropdown-menu {
-    position: absolute;
-    top: 48px;
-    right: 0;
+
+  /* Profile Sidebar */
+  .profile-sidebar {
+    position: fixed;
+    top: 0;
+    right: -320px; /* hidden by default */
+    width: 300px;
+    height: 100%;
     background: white;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
-    display: none;
-    min-width: 140px;
-    z-index: 10;
+    box-shadow: -3px 0 10px rgba(0,0,0,0.2);
+    padding: 25px 20px;
+    box-sizing: border-box;
+    transition: right 0.3s ease;
+    z-index: 1000;
+    overflow-y: auto;
   }
-  .dropdown-menu a {
-    display: block;
-    padding: 10px 15px;
+  .profile-sidebar.open {
+    right: 0;
+  }
+  .profile-sidebar h2 {
+    margin-top: 0;
+    color: #388e3c;
+  }
+  .profile-sidebar p {
+    font-size: 1rem;
+    margin: 12px 0;
     color: #333;
+  }
+  .profile-sidebar .close-btn {
+    background: none;
+    border: none;
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute;
+    top: 15px;     /* more space from top */
+    right: 15px;   /* more space from right */
+    cursor: pointer;
+    color: #388e3c;
+    padding: 5px;  /* increases clickable area */
+    border-radius: 50%;
+    transition: background 0.2s ease;
+}
+
+.profile-sidebar .close-btn:hover {
+    background: rgba(0,0,0,0.05);
+}
+  .profile-sidebar .btn-link {
+    display: inline-block;
+    margin: 10px 0;
+    color: #43a047;
+    font-weight: 600;
     text-decoration: none;
+    cursor: pointer;
   }
-  .dropdown-menu a:hover {
-    background-color: #f0f0f0;
-  }
-  .profile:hover .dropdown-menu {
-    display: block;
-  }
+
 
   .container {
     max-width: 1000px;
@@ -149,11 +181,28 @@
 </style>
 
 <script>
+
   function confirmLogout() {
-    if(confirm("Are you sure you want to logout?")) {
-      window.location.href = "Logout"; // change to your logout URL
-    }
-  }
+	    if (confirm("Are you sure you want to logout?")) {
+	      window.location.href = "Logout"; // change to your logout URL
+	    }
+	  }
+
+	  function toggleProfileSidebar() {
+	    const sidebar = document.getElementById('profileSidebar');
+	    sidebar.classList.toggle('open');
+	  }
+
+	  // Close sidebar if clicked outside
+	  document.addEventListener("click", function (event) {
+	    const sidebar = document.getElementById('profileSidebar');
+	    const profileBtn = document.querySelector(".profile");
+
+	    // If click is outside sidebar and outside profile button → close sidebar
+	    if (!sidebar.contains(event.target) && !profileBtn.contains(event.target)) {
+	      sidebar.classList.remove("open");
+	    }
+	  });
 </script>
 
 </head>
@@ -162,18 +211,27 @@
 <header>
   <div><h1>Staff Dashboard</h1></div>
 
-  <div class="profile" title="Profile Menu">
+  <div class="profile" title="Profile Menu" onclick="toggleProfileSidebar()" style="cursor:pointer;">
     <img src="https://i.pravatar.cc/40" alt="Profile Picture" />
     <span class="profile-name">${sessionScope.fullName}</span>
     <i class='bx bx-chevron-down' style="color: white;"></i>
-
-    <div class="dropdown-menu">
-      <a href="Profile">Profile</a>
-      <a href="StaffLogin?action=changePassword">Change Password</a>
-      <a href="javascript:void(0);" onclick="confirmLogout();">Logout <i class='bx bx-log-out'></i></a>
-    </div>
   </div>
 </header>
+
+<!-- Profile Sidebar -->
+<div id="profileSidebar" class="profile-sidebar">
+  <button onclick="toggleProfileSidebar()" class="close-btn" title="Close Profile">&times;</button>
+  <h2>Staff Profile</h2>
+  <p><strong>Name:</strong> ${sessionScope.fullName}</p>
+  <p><strong>Username:</strong> ${sessionScope.staff.username}</p>
+  <p><strong>Email:</strong> ${sessionScope.staff.email}</p>
+  <p><strong>Phone:</strong> ${sessionScope.staff.phone}</p>
+  <p><strong>NIC:</strong> ${sessionScope.staff.nic}</p>
+  <p><strong>Role:</strong> ${sessionScope.role}</p>
+  <hr/>
+  <a href="StaffLogin?action=changePassword" class="btn-link">Change Password</a><br/>
+  <a href="javascript:void(0);" onclick="confirmLogout();" class="btn-link">Logout</a>
+</div>
 
 <div class="container">
   <h1>Welcome, <span style="color:#388e3c;">${sessionScope.fullName}</span>!</h1>
@@ -207,7 +265,7 @@
   <div class="dashboard-links">
     <a href="Product?action=list" class="dashboard-link"><i class='bx bx-box'></i> Manage Products</a>
     <a href="Customer?action=list" class="dashboard-link"><i class='bx bx-user'></i> Manage Customers</a>
-    <a href="Bill?action=list" class="dashboard-link"><i class='bx bx-receipt'></i> Add Bill</a>
+  <a href="Bill?action=create" class="dashboard-link"><i class='bx bx-receipt'></i> Add Bill</a>
   </div>
 
   <div class="help-section">
