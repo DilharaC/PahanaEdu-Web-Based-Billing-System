@@ -3,36 +3,33 @@ package com.pahanaedu.model;
 public class BillItem {
     private Product product;
     private int quantity;
-    private double price; // Price at time of sale
+    private double price;
+    private double total; // ✅ added
+
+    public BillItem() {}
 
     public BillItem(Product product, int quantity, double price) {
         this.product = product;
         this.quantity = quantity;
         this.price = price;
+        this.total = quantity * price; // auto set
     }
 
-    public Product getProduct() {
-        return product;
-    }
-    public void setProduct(Product product) {
-        this.product = product;
+    public Product getProduct() { return product; }
+    public void setProduct(Product product) { this.product = product; }
+
+    public int getQuantity() { return quantity; }
+    public void setQuantity(int quantity) { 
+        this.quantity = quantity; 
+        this.total = this.quantity * this.price; // recalc total
     }
 
-    public int getQuantity() {
-        return quantity;
-    }
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
-    }
-
-    public double getPrice() {
-        return price;
-    }
-    public void setPrice(double price) {
-        this.price = price;
+    public double getPrice() { return price; }
+    public void setPrice(double price) { 
+        this.price = price; 
+        this.total = this.quantity * this.price; // recalc total
     }
 
-    public double getTotal() {
-        return price * quantity;
-    }
+    public double getTotal() { return total; }
+    public void setTotal(double total) { this.total = total; } // ✅ added
 }

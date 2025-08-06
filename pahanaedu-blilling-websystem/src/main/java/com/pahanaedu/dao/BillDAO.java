@@ -5,6 +5,8 @@ import com.pahanaedu.model.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import com.pahanaedu.model.BillItem;
+import com.pahanaedu.model.Product; 
 
 public class BillDAO {
 
@@ -64,4 +66,76 @@ public class BillDAO {
         }
         return bills;
     }
+    public Bill getBillById(int billId, Connection conn) throws Exception {
+    	String sql = "SELECT b.bill_id, b.bill_date, b.staff_id, s.username AS staff_username, " +
+                "c.customer_id, c.name AS customer_name, c.phone, b.total_amount " +
+                "FROM bill b " +
+                "JOIN customer c ON b.customer_id = c.customer_id " +
+                "JOIN staff s ON b.staff_id = s.staff_id " +
+                "WHERE b.bill_id = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, billId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Bill bill = new Bill();
+
+                    bill.setBillId(rs.getInt("bill_id"));
+                    bill.setBillDate(rs.getDate("bill_date"));
+                    bill.setStaffId(rs.getInt("staff_id"));
+
+                    // If you want to keep staff username inside Bill:
+                    bill.setStaffName(rs.getString("staff_username"));// Add this field to Bill model
+
+                    Customer customer = new Customer();
+                    customer.setCustomerId(rs.getInt("customer_id"));
+                    customer.setName(rs.getString("customer_name"));
+                    customer.setPhone(rs.getString("phone"));
+                    bill.setCustomer(customer);
+
+                    bill.setTotalAmount(rs.getDouble("total_amount"));
+
+                    // Load bill items as before
+                    List<BillItem> items = getBillItemsByBillId(billId, conn);
+                    bill.setItems(items);
+
+                    return bill;
+                } else {
+                    return null;
+                }
+            }
+        }
+    }
+    
+
+    // Helper method to load BillItems for a given billId
+    private List<BillItem> getBillItemsByBillId(int billId, Connection conn) throws Exception {
+        String sql = "SELECT bi.product_id, bi.quantity, bi.price, p.name AS product_name " +
+                     "FROM bill_item bi " +
+                     "JOIN product p ON bi.product_id = p.product_id " +
+                     "WHERE bi.bill_id = ?";
+
+        List<BillItem> items = new ArrayList<>();
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, billId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Product product = new Product();
+                    product.setProductId(rs.getInt("product_id"));
+                    product.setName(rs.getString("product_name"));
+
+                    int quantity = rs.getInt("quantity");
+                    double price = rs.getDouble("price");
+
+                    BillItem item = new BillItem(product, quantity, price);
+                    items.add(item);
+                }
+            }
+        }
+        return items;
+    }
 }
+
