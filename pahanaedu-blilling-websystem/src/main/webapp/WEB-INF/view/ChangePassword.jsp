@@ -68,11 +68,30 @@
         background-color: #d4edda;
         color: #155724;
     }
+    /* Home Button Style */
+    .btn-home {
+        display: inline-block;
+        margin-bottom: 15px;
+        padding: 8px 16px;
+        background-color: #4caf50;
+        color: white;
+        text-decoration: none;
+        font-weight: bold;
+        border-radius: 4px;
+        transition: background-color 0.3s ease;
+    }
+    .btn-home:hover {
+        background-color: #388e3c;
+    }
 </style>
 </head>
 <body>
 
 <div class="container">
+
+    <!-- Home Button -->
+    <a href="StaffDashboard" class="btn-home">🏠 Home</a>
+
     <h2>Change Password</h2>
 
     <!-- Show error message -->
