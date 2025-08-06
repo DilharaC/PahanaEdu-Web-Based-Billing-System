@@ -66,34 +66,71 @@ public class BillController extends HttpServlet {
     }
 
     private void saveBill(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        int customerId = Integer.parseInt(request.getParameter("customerId"));
-        String[] productIds = request.getParameterValues("productId");
-        String[] quantities = request.getParameterValues("quantity");
-
-        Integer staffId = (Integer) request.getSession().getAttribute("staffId");
-        if (staffId == null) staffId = 1; // testing default
-
+        int customerId = 0;
+        Integer staffId = null;
         List<BillItem> items = new ArrayList<>();
 
         try (Connection conn = DBConnectionFactory.getConnection()) {
+            // Parse customer ID safely
+            String customerIdStr = request.getParameter("customerId");
+            if (customerIdStr == null || customerIdStr.trim().isEmpty()) {
+                throw new ServletException("Customer ID is missing.");
+            }
+            customerId = Integer.parseInt(customerIdStr.trim());
+
             Customer customer = customerDAO.getCustomerById(customerId, conn);
+            if (customer == null) {
+                throw new ServletException("Customer not found with ID: " + customerId);
+            }
+
+            staffId = (Integer) request.getSession().getAttribute("staffId");
+            if (staffId == null) {
+                staffId = 1; // default staff for testing, change as needed
+            }
+
+            String[] productIds = request.getParameterValues("productId");
+            String[] quantities = request.getParameterValues("quantity");
+
+            if (productIds == null || quantities == null || productIds.length != quantities.length) {
+                throw new ServletException("Product or quantity data is invalid.");
+            }
 
             for (int i = 0; i < productIds.length; i++) {
-                Product product = productDAO.getProductById(Integer.parseInt(productIds[i]), conn);
-                int qty = Integer.parseInt(quantities[i]);
-                if (qty > 0) {
-                    items.add(new BillItem(product, qty, product.getPrice()));
+                String pidStr = productIds[i];
+                String qtyStr = quantities[i];
+
+                if (pidStr == null || pidStr.trim().isEmpty()) {
+                    continue; // skip invalid productId
                 }
+                if (qtyStr == null || qtyStr.trim().isEmpty()) {
+                    continue; // skip empty quantity input
+                }
+
+                int pid = Integer.parseInt(pidStr.trim());
+                int qty = Integer.parseInt(qtyStr.trim());
+                if (qty <= 0) continue; // skip zero or negative quantities
+
+                Product product = productDAO.getProductById(pid, conn);
+                if (product == null) {
+                    throw new ServletException("Product not found with ID: " + pid);
+                }
+
+                items.add(new BillItem(product, qty, product.getPrice()));
+            }
+
+            if (items.isEmpty()) {
+                throw new ServletException("No valid products with quantity to create a bill.");
             }
 
             int billId = billService.createBill(customer, items, staffId, conn);
+            Bill fullBill = billDAO.getBillById(billId, conn);
 
-            request.setAttribute("billId", billId);
+            request.setAttribute("bill", fullBill);
             request.getRequestDispatcher("/WEB-INF/view/bill_success.jsp").forward(request, response);
 
         } catch (Exception e) {
-            e.printStackTrace();
-            response.sendError(500, "Error creating bill");
+            e.printStackTrace(); // Log full stack trace for debugging
+            throw new ServletException("Error creating bill: " + e.getMessage(), e); // Throw with cause
         }
     }
 
