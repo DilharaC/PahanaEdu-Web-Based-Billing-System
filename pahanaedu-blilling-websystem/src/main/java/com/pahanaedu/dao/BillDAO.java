@@ -67,12 +67,11 @@ public class BillDAO {
         return bills;
     }
     public Bill getBillById(int billId, Connection conn) throws Exception {
-    	String sql = "SELECT b.bill_id, b.bill_date, b.staff_id, s.username AS staff_username, " +
-                "c.customer_id, c.name AS customer_name, c.phone, b.total_amount " +
-                "FROM bill b " +
-                "JOIN customer c ON b.customer_id = c.customer_id " +
-                "JOIN staff s ON b.staff_id = s.staff_id " +
-                "WHERE b.bill_id = ?";
+        String sql = "SELECT b.bill_id, b.bill_date, b.total_amount, " +
+                     "c.customer_id, c.name AS customer_name, c.phone " +
+                     "FROM bill b " +
+                     "JOIN customer c ON b.customer_id = c.customer_id " +
+                     "WHERE b.bill_id = ?";
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, billId);
@@ -83,10 +82,7 @@ public class BillDAO {
 
                     bill.setBillId(rs.getInt("bill_id"));
                     bill.setBillDate(rs.getDate("bill_date"));
-                    bill.setStaffId(rs.getInt("staff_id"));
-
-                    // If you want to keep staff username inside Bill:
-                    bill.setStaffName(rs.getString("staff_username"));// Add this field to Bill model
+                    bill.setTotalAmount(rs.getDouble("total_amount"));
 
                     Customer customer = new Customer();
                     customer.setCustomerId(rs.getInt("customer_id"));
@@ -94,9 +90,10 @@ public class BillDAO {
                     customer.setPhone(rs.getString("phone"));
                     bill.setCustomer(customer);
 
-                    bill.setTotalAmount(rs.getDouble("total_amount"));
+                    // Remove staffId and staffName since no staff join
+                    bill.setStaffId(0);
+                    bill.setStaffName(null);
 
-                    // Load bill items as before
                     List<BillItem> items = getBillItemsByBillId(billId, conn);
                     bill.setItems(items);
 
@@ -137,5 +134,31 @@ public class BillDAO {
         }
         return items;
     }
+    public List<Bill> getLast5Bills(Connection conn) throws SQLException {
+        List<Bill> bills = new ArrayList<>();
+        String sql = "SELECT b.bill_id, b.bill_date, b.total_amount, " +
+                     "c.name AS customer_name " +
+                     "FROM bill b " +
+                     "JOIN customer c ON b.customer_id = c.customer_id " +
+                     "ORDER BY b.bill_id DESC LIMIT 5";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Bill bill = new Bill();
+                bill.setBillId(rs.getInt("bill_id"));
+                bill.setBillDate(rs.getDate("bill_date"));
+                bill.setTotalAmount(rs.getDouble("total_amount"));
+
+                Customer customer = new Customer();
+                customer.setName(rs.getString("customer_name"));
+                bill.setCustomer(customer);
+
+                bills.add(bill);
+            }
+        }
+        return bills;
+    }
 }
+
 
