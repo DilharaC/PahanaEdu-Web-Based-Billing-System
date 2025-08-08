@@ -266,8 +266,36 @@
     <a href="Product?action=list" class="dashboard-link"><i class='bx bx-box'></i> Manage Products</a>
     <a href="Customer?action=list" class="dashboard-link"><i class='bx bx-user'></i> Manage Customers</a>
   <a href="Bill?action=create" class="dashboard-link"><i class='bx bx-receipt'></i> Add Bill</a>
+  <a href="StaffDashboard?action=allTransactions" class="dashboard-link">
+        <i class='bx bx-history'></i> Transaction History
+    </a>
   </div>
-
+<h2 style="color:#2e7d32; margin-top:40px;">Last 5 Transactions</h2>
+<table border="1" cellpadding="10" cellspacing="0" style="width:100%; background:white; border-collapse:collapse;">
+    <thead style="background:#43a047; color:white;">
+        <tr>
+            <th>Bill ID</th>
+            <th>Date</th>
+            <th>Customer</th>
+            <th>Total Amount (Rs)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <c:forEach var="bill" items="${last5Bills}">
+            <tr>
+                <td>${bill.billId}</td>
+                <td>${bill.billDate}</td>
+                <td>${bill.customer.name}</td>
+                <td>${bill.totalAmount}</td>
+            </tr>
+        </c:forEach>
+        <c:if test="${empty last5Bills}">
+            <tr>
+                <td colspan="4" style="text-align:center;">No recent transactions found.</td>
+            </tr>
+        </c:if>
+    </tbody>
+</table>
   <div class="help-section">
     <p>Need help? Visit our <a href="help.html" target="_blank">Help & Support</a> page.</p>
   </div>
