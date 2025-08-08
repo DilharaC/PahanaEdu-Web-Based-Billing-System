@@ -16,6 +16,8 @@
         background-color: #f4fff4;
         margin: 0;
         padding: 0;
+        color: #000;
+        transition: background-color 0.3s ease, color 0.3s ease;
     }
     .header {
         background-color: #66bb6a;
@@ -74,6 +76,8 @@
         top: 20px;
         height: 95vh;
         box-sizing: border-box;
+        color: #000;
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     }
     .form-control {
         width: 100%;
@@ -82,6 +86,7 @@
         border-radius: 4px;
         border: 1px solid #ccc;
         box-sizing: border-box;
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     }
     .sidebar h3 {
         color: #388e3c;
@@ -102,6 +107,7 @@
         justify-content: center;
         gap: 5px;
         font-weight: bold;
+        transition: background-color 0.3s ease;
     }
     .search-btn:hover {
         background-color: #57a05a;
@@ -112,6 +118,8 @@
         padding: 15px;
         border: 1px solid #ccc;
         border-radius: 5px;
+        color: #000;
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     }
     .content-header {
         display: flex;
@@ -131,6 +139,7 @@
         font-weight: bold;
         gap: 6px;
         min-width: 120px;
+        transition: background-color 0.3s ease;
     }
     .add-btn:hover {
         background-color: #3e8e41;
@@ -138,6 +147,8 @@
     table {
         width: 100%;
         border-collapse: collapse;
+        color: #000;
+        transition: color 0.3s ease;
     }
     th {
         background-color: #a5d6a7;
@@ -161,6 +172,10 @@
         display: inline-flex;
         align-items: center;
         gap: 4px;
+        transition: background-color 0.3s ease;
+    }
+    .btn-edit:hover {
+        background-color: #1976d2;
     }
     .btn-delete {
         background-color: #ef5350;
@@ -172,13 +187,83 @@
         display: inline-flex;
         align-items: center;
         gap: 4px;
+        transition: background-color 0.3s ease;
     }
+    .btn-delete:hover {
+        background-color: #c62828;
+    }
+
+    /* Dark Mode Styles */
+    body.dark-mode {
+        background-color: #121212;
+        color: #ddd;
+    }
+    body.dark-mode .header {
+        background-color: #1b5e20;
+        color: #c8e6c9;
+    }
+    body.dark-mode .back-home-btn {
+        background-color: #2e7d32;
+        color: #c8e6c9;
+    }
+    body.dark-mode .back-home-btn:hover {
+        background-color: #1b5e20;
+    }
+    body.dark-mode .sidebar,
+    body.dark-mode .content {
+        background-color: #1e1e1e;
+        border-color: #333;
+        color: #ccc;
+    }
+    body.dark-mode input.form-control,
+    body.dark-mode button.search-btn,
+    body.dark-mode a.add-btn,
+    body.dark-mode .btn-edit,
+    body.dark-mode .btn-delete {
+        background-color: #2e7d32;
+        color: #c8e6c9;
+        border: 1px solid #3e8e41;
+    }
+    body.dark-mode input.form-control::placeholder {
+        color: #bbb;
+    }
+    body.dark-mode table th {
+        background-color: #388e3c;
+        color: #c8e6c9;
+    }
+    body.dark-mode table tr:hover {
+        background-color: #2e7d32;
+    }
+    body.dark-mode table {
+  color: #ddd; /* lighter text for table content */
+}
+
+body.dark-mode table th {
+  background-color: #388e3c; /* darker green header */
+  color: #c8e6c9; /* light green text */
+}
+
+body.dark-mode table td {
+  border-bottom: 1px solid #444; /* darker border */
+  color: #ddd; /* lighter text */
+  background-color: #1e1e1e; /* match content background */
+}
+
+body.dark-mode table tr:hover {
+  background-color: #2e7d32; /* slightly lighter green hover */
+}
 </style>
 </head>
 <body>
 
 <div class="header">
     <h1><i class='bx bxs-user'></i> Customer Management</h1>
+
+    <!-- Dark/Light mode toggle button -->
+    <button id="themeToggleBtn" aria-label="Toggle dark mode" title="Toggle dark mode" style="position:absolute; right: 70px; top: 50%; transform: translateY(-50%); background:none; border:none; cursor:pointer; color:white; font-size:1.4rem;">
+      <i class='bx bx-moon'></i>
+    </button>
+
     <c:choose>
         <c:when test="${sessionScope.role == 'admin'}">
             <a href="${pageContext.request.contextPath}/AdminDashboard?action=dashboard" class="back-home-btn">
@@ -263,6 +348,35 @@
         </table>
     </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const body = document.body;
+    const themeIcon = themeToggleBtn.querySelector('i');
+
+    // Load saved theme from localStorage
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      body.classList.add('dark-mode');
+      themeIcon.className = 'bx bx-sun';
+    } else {
+      themeIcon.className = 'bx bx-moon';
+    }
+
+    // Toggle theme on button click
+    themeToggleBtn.addEventListener('click', () => {
+      body.classList.toggle('dark-mode');
+      if (body.classList.contains('dark-mode')) {
+        themeIcon.className = 'bx bx-sun';
+        localStorage.setItem('theme', 'dark');
+      } else {
+        themeIcon.className = 'bx bx-moon';
+        localStorage.setItem('theme', 'light');
+      }
+    });
+  });
+</script>
 
 </body>
 </html>

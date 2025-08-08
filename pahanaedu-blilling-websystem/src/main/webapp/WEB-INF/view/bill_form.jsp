@@ -73,6 +73,7 @@
             background-color: #f4fff4;
             color: #333;
             padding-top: 75px; /* header height + some space */
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
         h2 {
             margin-bottom: 20px;
@@ -93,6 +94,7 @@
             padding: 20px 30px;
             border-radius: 8px;
             box-shadow: 0 0 12px rgba(102, 187, 106, 0.2);
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
         .section {
             border: 1px solid #a5d6a7;
@@ -100,12 +102,14 @@
             margin-bottom: 25px;
             border-radius: 6px;
             background-color: #e8f5e9;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
         label {
             font-weight: bold;
             color: #2e7d32;
             margin-bottom: 6px;
             display: inline-block;
+            transition: color 0.3s ease;
         }
         input[type=text], input[type=number], select {
             width: 250px;
@@ -116,7 +120,7 @@
             border: 1px solid #81c784;
             box-sizing: border-box;
             font-size: 1rem;
-            transition: border-color 0.3s ease;
+            transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
         }
         input[type=text]:focus, input[type=number]:focus, select:focus {
             border-color: #4caf50;
@@ -141,15 +145,18 @@
             font-weight: 600;
             color: #2e7d32;
             margin-top: 5px;
+            transition: color 0.3s ease;
         }
         table {
             border-collapse: collapse;
             width: 100%;
             margin-top: 10px;
             font-size: 1rem;
+            transition: color 0.3s ease;
         }
         table, th, td {
             border: 1px solid #a5d6a7;
+            transition: border-color 0.3s ease;
         }
         th {
             background-color: #66bb6a;
@@ -164,6 +171,7 @@
         }
         tbody tr:hover {
             background-color: #c8e6c9;
+            transition: background-color 0.3s ease;
         }
         .remove-btn {
             color: #ef5350;
@@ -182,6 +190,7 @@
             margin-top: 10px;
             font-weight: 600;
             color: #2e7d32;
+            transition: color 0.3s ease;
         }
         .summary td {
             padding: 8px 12px;
@@ -195,6 +204,7 @@
             border: 1px solid #81c784;
             border-radius: 4px;
             padding: 5px;
+            transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
         }
         .buttons {
             text-align: center;
@@ -203,6 +213,76 @@
         .buttons button {
             min-width: 140px;
             margin: 0 12px;
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #121212;
+            color: #ddd;
+        }
+        body.dark-mode .header {
+            background-color: #1b5e20;
+            color: #c8e6c9;
+        }
+        body.dark-mode .back-home-btn {
+            background-color: #2e7d32;
+            color: #c8e6c9;
+        }
+        body.dark-mode .back-home-btn:hover {
+            background-color: #1b5e20;
+        }
+        body.dark-mode .container {
+            background-color: #1e1e1e;
+            color: #ccc;
+            box-shadow: 0 0 15px #234d23;
+        }
+        body.dark-mode .section {
+            background-color: #2a2a2a;
+            border-color: #3e8e41;
+            color: #ccc;
+        }
+        body.dark-mode label,
+        body.dark-mode #customerInfo,
+        body.dark-mode #productInfo,
+        body.dark-mode .summary {
+            color: #a5d6a7;
+        }
+        body.dark-mode input[type=text],
+        body.dark-mode input[type=number],
+        body.dark-mode select {
+            background-color: #3a3a3a;
+            color: #ddd;
+            border-color: #4caf50;
+        }
+        body.dark-mode input[type=text]:focus,
+        body.dark-mode input[type=number]:focus,
+        body.dark-mode select:focus {
+            border-color: #81c784;
+        }
+        body.dark-mode button {
+            background-color: #4caf50;
+            color: #e8f5e9;
+        }
+        body.dark-mode button:hover {
+            background-color: #388e3c;
+        }
+        body.dark-mode table, 
+        body.dark-mode th, 
+        body.dark-mode td {
+            border-color: #4caf50;
+        }
+        body.dark-mode th {
+            background-color: #388e3c;
+            color: #e8f5e9;
+        }
+        body.dark-mode tbody tr:hover {
+            background-color: #3e8e41;
+        }
+        body.dark-mode .remove-btn {
+            color: #ef9a9a;
+        }
+        body.dark-mode .remove-btn:hover {
+            color: #b71c1c;
         }
     </style>
     <!-- Optional: Include Boxicons for icons -->
@@ -524,6 +604,11 @@
         });
 
         return true;
+    }
+
+    // Apply dark mode automatically if stored in localStorage
+    if(localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
     }
 </script>
 

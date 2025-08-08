@@ -119,4 +119,50 @@ public class CustomerDAO {
             return rs.next() ? rs.getInt(1) : 0;
         }
     }
+    public List<Integer> getMonthlyNewCustomers(Connection conn, int months) throws SQLException {
+        List<Integer> counts = new ArrayList<>();
+        String sql = "SELECT YEAR(registration_date) AS yr, MONTH(registration_date) AS mon, COUNT(*) AS count " +
+                     "FROM customer " +
+                     "WHERE registration_date >= DATE_SUB(CURDATE(), INTERVAL ? MONTH) " +
+                     "GROUP BY yr, mon " +
+                     "ORDER BY yr, mon";
+
+        // Initialize map with last 'months' months keys to 0
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.util.Map<String, Integer> map = new java.util.HashMap<>();
+        java.time.format.DateTimeFormatter keyFormatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM");
+        for (int i = months - 1; i >= 0; i--) {
+            java.time.LocalDate month = today.minusMonths(i);
+            map.put(month.format(keyFormatter), 0);
+        }
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, months);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    String key = rs.getInt("yr") + "-" + String.format("%02d", rs.getInt("mon"));
+                    int count = rs.getInt("count");
+                    if (map.containsKey(key)) {
+                        map.put(key, count);
+                    }
+                }
+            }
+        }
+
+        for (int i = months - 1; i >= 0; i--) {
+            java.time.LocalDate month = today.minusMonths(i);
+            counts.add(map.get(month.format(keyFormatter)));
+        }
+        return counts;
+    }
+
+    public List<String> getLastMonthsLabels(int months) {
+        List<String> labels = new ArrayList<>();
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("MMM yyyy");
+        for (int i = months - 1; i >= 0; i--) {
+            labels.add(today.minusMonths(i).format(formatter));
+        }
+        return labels;
+    }
 }

@@ -43,7 +43,7 @@ public class BillDAO {
     public List<Bill> getAllBills(Connection conn) throws SQLException {
         List<Bill> bills = new ArrayList<>();
         String sql = "SELECT b.bill_id, b.bill_date, b.total_amount, b.staff_id, " +
-                     "c.customer_id, c.name AS customer_name " +
+                     "c.customer_id, c.name AS customer_name, c.phone " +
                      "FROM bill b JOIN customer c ON b.customer_id = c.customer_id " +
                      "ORDER BY b.bill_id DESC";
 
@@ -53,6 +53,7 @@ public class BillDAO {
                 Customer customer = new Customer();
                 customer.setCustomerId(rs.getInt("customer_id"));
                 customer.setName(rs.getString("customer_name"));
+                customer.setPhone(rs.getString("phone"));  // Added phone here
 
                 Bill bill = new Bill();
                 bill.setBillId(rs.getInt("bill_id"));
@@ -137,7 +138,7 @@ public class BillDAO {
     public List<Bill> getLast5Bills(Connection conn) throws SQLException {
         List<Bill> bills = new ArrayList<>();
         String sql = "SELECT b.bill_id, b.bill_date, b.total_amount, " +
-                     "c.name AS customer_name " +
+                     "c.name AS customer_name, c.phone AS customer_phone " +
                      "FROM bill b " +
                      "JOIN customer c ON b.customer_id = c.customer_id " +
                      "ORDER BY b.bill_id DESC LIMIT 5";
@@ -152,6 +153,7 @@ public class BillDAO {
 
                 Customer customer = new Customer();
                 customer.setName(rs.getString("customer_name"));
+                customer.setPhone(rs.getString("customer_phone"));  // Add phone here
                 bill.setCustomer(customer);
 
                 bills.add(bill);
@@ -159,6 +161,8 @@ public class BillDAO {
         }
         return bills;
     }
+  
+    
 }
 
 
