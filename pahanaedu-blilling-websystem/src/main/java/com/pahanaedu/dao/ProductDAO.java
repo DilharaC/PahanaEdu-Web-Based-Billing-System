@@ -177,4 +177,39 @@ public class ProductDAO {
             return rs.next() ? rs.getInt(1) : 0;
         }
     }
+    public List<String> getTopSellingProductNames(Connection conn, int limit) throws SQLException {
+        List<String> names = new ArrayList<>();
+        String sql = "SELECT p.name, SUM(bi.quantity) AS total_qty " +
+                     "FROM bill_item bi JOIN product p ON bi.product_id = p.product_id " +
+                     "GROUP BY p.product_id, p.name " +
+                     "ORDER BY total_qty DESC LIMIT ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    names.add(rs.getString("name"));
+                }
+            }
+        }
+        return names;
+    }
+
+    public List<Integer> getTopSellingProductQuantities(Connection conn, int limit) throws SQLException {
+        List<Integer> quantities = new ArrayList<>();
+        String sql = "SELECT p.name, SUM(bi.quantity) AS total_qty " +
+                     "FROM bill_item bi JOIN product p ON bi.product_id = p.product_id " +
+                     "GROUP BY p.product_id, p.name " +
+                     "ORDER BY total_qty DESC LIMIT ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    quantities.add(rs.getInt("total_qty"));
+                }
+            }
+        }
+        return quantities;
+    }
 }

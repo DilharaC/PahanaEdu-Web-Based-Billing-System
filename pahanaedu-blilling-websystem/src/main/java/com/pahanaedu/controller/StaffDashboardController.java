@@ -75,3 +75,5 @@ public class StaffDashboardController extends HttpServlet {
         request.getRequestDispatcher("WEB-INF/view/allTransactions.jsp").forward(request, response);
     }
 }
+
+  

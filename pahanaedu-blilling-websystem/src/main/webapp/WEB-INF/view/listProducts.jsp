@@ -16,6 +16,7 @@
         background-color: #f4fff4;
         margin: 0;
         padding: 0;
+        transition: background-color 0.3s ease, color 0.3s ease;
     }
     .header {
         background-color: #66bb6a;
@@ -27,6 +28,7 @@
         justify-content: center;
         align-items: center;
         gap: 8px;
+        transition: background-color 0.3s ease, color 0.3s ease;
     }
     .header h1 {
         font-size: 1.8rem;
@@ -54,6 +56,9 @@
         font-weight: bold;
         font-size: 0.9rem;
         transition: background-color 0.3s ease;
+        white-space: nowrap;
+        user-select: none;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
     .back-home-btn:hover {
         background-color: #3e8e41;
@@ -63,6 +68,7 @@
         gap: 20px;
         padding: 20px;
         align-items: flex-start;
+        color: inherit;
     }
     /* Fixed Sidebar */
     .sidebar {
@@ -75,6 +81,7 @@
         top: 20px;
         height: 95vh;
         box-sizing: border-box;
+        transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
     }
     .form-control {
         width: 100%;
@@ -83,12 +90,15 @@
         border-radius: 4px;
         border: 1px solid #ccc;
         box-sizing: border-box;
+        transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
     }
     .sidebar h3 {
         color: #388e3c;
         display: flex;
         align-items: center;
         gap: 6px;
+        margin-top: 0;
+        transition: color 0.3s ease;
     }
     .search-btn {
         background-color: #66bb6a;
@@ -103,6 +113,8 @@
         justify-content: center;
         gap: 5px;
         font-weight: bold;
+        transition: background-color 0.3s ease;
+        user-select: none;
     }
     .search-btn:hover {
         background-color: #57a05a;
@@ -113,6 +125,8 @@
         padding: 15px;
         border: 1px solid #ccc;
         border-radius: 5px;
+        color: inherit;
+        transition: background-color 0.3s ease, border-color 0.3s ease;
     }
     .content-header {
         display: flex;
@@ -132,6 +146,8 @@
         font-weight: bold;
         gap: 6px;
         min-width: 120px;
+        user-select: none;
+        transition: background-color 0.3s ease;
     }
     .add-btn:hover {
         background-color: #3e8e41;
@@ -139,18 +155,22 @@
     table {
         width: 100%;
         border-collapse: collapse;
+        transition: color 0.3s ease;
     }
     th {
         background-color: #a5d6a7;
         padding: 10px;
         text-align: left;
+        transition: background-color 0.3s ease, color 0.3s ease;
     }
     td {
         padding: 8px;
         border-bottom: 1px solid #ddd;
+        transition: color 0.3s ease;
     }
     tr:hover {
         background-color: #f1f8f1;
+        transition: background-color 0.3s ease;
     }
     .btn-edit {
         background-color: #42a5f5;
@@ -162,6 +182,11 @@
         display: inline-flex;
         align-items: center;
         gap: 4px;
+        user-select: none;
+        transition: background-color 0.3s ease;
+    }
+    .btn-edit:hover {
+        background-color: #1e88e5;
     }
     .btn-delete {
         background-color: #ef5350;
@@ -173,6 +198,87 @@
         display: inline-flex;
         align-items: center;
         gap: 4px;
+        user-select: none;
+        transition: background-color 0.3s ease;
+    }
+    .btn-delete:hover {
+        background-color: #c62828;
+    }
+
+    /* Dark Mode Styles */
+    body.dark-mode {
+        background-color: #121212;
+        color: #ddd;
+    }
+    body.dark-mode .header {
+        background-color: #1b5e20;
+        color: #c8e6c9;
+    }
+    body.dark-mode .back-home-btn {
+        background-color: #2e7d32;
+        color: #c8e6c9;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.7);
+    }
+    body.dark-mode .back-home-btn:hover {
+        background-color: #1b5e20;
+    }
+    body.dark-mode .container {
+        color: #ccc;
+    }
+    body.dark-mode .sidebar {
+        background-color: #1e1e1e;
+        border-color: #3e8e41;
+        color: #a5d6a7;
+    }
+    body.dark-mode .form-control {
+        background-color: #3a3a3a;
+        border-color: #4caf50;
+        color: #ddd;
+    }
+    body.dark-mode .form-control:focus {
+        border-color: #81c784;
+        outline: none;
+    }
+    body.dark-mode .sidebar h3 {
+        color: #81c784;
+    }
+    body.dark-mode .search-btn {
+        background-color: #4caf50;
+        color: #e8f5e9;
+    }
+    body.dark-mode .search-btn:hover {
+        background-color: #388e3c;
+    }
+    body.dark-mode .content {
+        background-color: #1e1e1e;
+        border-color: #3e8e41;
+        color: #ccc;
+    }
+    body.dark-mode table, 
+    body.dark-mode th, 
+    body.dark-mode td {
+        border-color: #4caf50;
+    }
+    body.dark-mode th {
+        background-color: #388e3c;
+        color: #e8f5e9;
+    }
+    body.dark-mode tr:hover {
+        background-color: #3e8e41;
+    }
+    body.dark-mode .btn-edit {
+        background-color: #2196f3;
+        color: #e3f2fd;
+    }
+    body.dark-mode .btn-edit:hover {
+        background-color: #1565c0;
+    }
+    body.dark-mode .btn-delete {
+        background-color: #e53935;
+        color: #ffcdd2;
+    }
+    body.dark-mode .btn-delete:hover {
+        background-color: #b71c1c;
     }
 </style>
 </head>
@@ -181,17 +287,17 @@
 <div class="header">
     <h1><i class='bx bxs-cube-alt'></i> Product Management</h1>
     <c:choose>
-  <c:when test="${sessionScope.role == 'admin'}">
-    <a href="${pageContext.request.contextPath}/AdminDashboard?action=dashboard" class="back-home-btn">
-      <i class='bx bx-home'></i> Home
-    </a>
-  </c:when>
-  <c:otherwise>
-    <a href="${pageContext.request.contextPath}/StaffDashboard?action=dashboard" class="back-home-btn">
-      <i class='bx bx-home'></i> Home
-    </a>
-  </c:otherwise>
-</c:choose>
+      <c:when test="${sessionScope.role == 'admin'}">
+        <a href="${pageContext.request.contextPath}/AdminDashboard?action=dashboard" class="back-home-btn">
+          <i class='bx bx-home'></i> Home
+        </a>
+      </c:when>
+      <c:otherwise>
+        <a href="${pageContext.request.contextPath}/StaffDashboard?action=dashboard" class="back-home-btn">
+          <i class='bx bx-home'></i> Home
+        </a>
+      </c:otherwise>
+    </c:choose>
 </div>
 
 <div class="container">
@@ -267,6 +373,13 @@
         </table>
     </div>
 </div>
+
+<script>
+    // Automatically apply dark mode if localStorage.theme is 'dark'
+    if(localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+    }
+</script>
 
 </body>
 </html>
