@@ -8,6 +8,6 @@
    
     <a href="StaffLogin.jsp">Dashboard Home</a>
     <br/><br/>
-   <a href="forgot-password?action=showForm">Forgot Password?</a>
+ <a href="ForgotPassword">Forgot Password?</a>
 </body>
 </html>

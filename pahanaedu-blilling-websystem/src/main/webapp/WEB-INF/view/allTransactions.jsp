@@ -266,18 +266,11 @@
     <!-- Sidebar: filters -->
 <div class="sidebar">
     <h3><i class='bx bx-filter'></i> Filter Transactions</h3>
-   <form method="get" action="StaffDashboard?action=allTransactions">
-        <label for="customerPhone">Customer Phone</label>
-        <input type="text" id="customerPhone" name="customerPhone" value="${customerPhone}" placeholder="Customer phone" class="form-control" />
-
-        <label for="startDate">Start Date</label>
-        <input type="date" id="startDate" name="startDate" value="${startDate}" class="form-control" />
-
-        <label for="endDate">End Date</label>
-        <input type="date" id="endDate" name="endDate" value="${endDate}" class="form-control" />
-
-        <button type="submit" class="search-btn"><i class='bx bx-search'></i> Search</button>
-    </form>
+<form method="get" action="Bill?action=searchByPhone">
+    <label for="customerPhone">Customer Phone</label>
+    <input type="text" id="customerPhone" name="customerPhone" value="${customerPhone}" placeholder="Customer phone" class="form-control" />
+    <button type="submit" class="search-btn"><i class='bx bx-search'></i> Search</button>
+</form>
 </div>
 
     <!-- Content: transaction list -->
@@ -310,6 +303,7 @@
                         <td>
                             <a href="Bill?action=view&billId=${bill.billId}" class="btn-view" aria-label="View bill ${bill.billId}">
                                 <i class='bx bx-show'></i> View
+                               
                             </a>
                         </td>
                     </tr>
