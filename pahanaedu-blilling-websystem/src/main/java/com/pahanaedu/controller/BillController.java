@@ -12,9 +12,6 @@ import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Servlet implementation class BillController
- */
 @WebServlet("/Bill")
 public class BillController extends HttpServlet {
 
@@ -23,6 +20,7 @@ public class BillController extends HttpServlet {
     private CustomerDAO customerDAO = new CustomerDAO();
     private ProductDAO productDAO = new ProductDAO();
 
+  
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
@@ -30,12 +28,20 @@ public class BillController extends HttpServlet {
 
         switch (action) {
             case "create":
-            case "form":  // allow form as synonym for create
+            case "form":
                 showBillForm(request, response);
                 break;
+
             case "view":
-                viewBills(request, response);
+                String billIdStr = request.getParameter("billId");
+                if (billIdStr != null) {
+                    viewBillDetails(request, response); // Show single bill details page
+                } else {
+                    viewBills(request, response); // Show all bills list
+                }
                 break;
+           
+
             default:
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Unknown action");
         }
@@ -61,29 +67,24 @@ public class BillController extends HttpServlet {
             request.setAttribute("products", productDAO.getAllProducts(conn));
         } catch (Exception e) {
             e.printStackTrace();
+            // You may want to forward to an error page here
         }
         request.getRequestDispatcher("/WEB-INF/view/bill_form.jsp").forward(request, response);
     }
 
     private void saveBill(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        int customerId = 0;
-        Integer staffId = null;
+        int customerId;
+        Integer staffId;
         List<BillItem> items = new ArrayList<>();
 
         try (Connection conn = DBConnectionFactory.getConnection()) {
-            System.out.println("[DEBUG] Starting saveBill...");
-
             String customerIdStr = request.getParameter("customerId");
-            System.out.println("[DEBUG] customerIdStr: " + customerIdStr);
-
             if (customerIdStr == null || customerIdStr.trim().isEmpty()) {
                 throw new ServletException("Customer ID is missing.");
             }
             customerId = Integer.parseInt(customerIdStr.trim());
 
             Customer customer = customerDAO.getCustomerById(customerId, conn);
-            System.out.println("[DEBUG] Retrieved customer: " + customer);
-
             if (customer == null) {
                 throw new ServletException("Customer not found with ID: " + customerId);
             }
@@ -92,13 +93,9 @@ public class BillController extends HttpServlet {
             if (staffId == null) {
                 staffId = 1; // default staff for testing
             }
-            System.out.println("[DEBUG] staffId: " + staffId);
 
             String[] productIds = request.getParameterValues("productId");
             String[] quantities = request.getParameterValues("quantity");
-
-            System.out.println("[DEBUG] productIds length: " + (productIds == null ? "null" : productIds.length));
-            System.out.println("[DEBUG] quantities length: " + (quantities == null ? "null" : quantities.length));
 
             if (productIds == null || quantities == null || productIds.length != quantities.length) {
                 throw new ServletException("Product or quantity data is invalid.");
@@ -108,8 +105,6 @@ public class BillController extends HttpServlet {
                 String pidStr = productIds[i];
                 String qtyStr = quantities[i];
 
-                System.out.println("[DEBUG] Processing productId: " + pidStr + ", quantity: " + qtyStr);
-
                 if (pidStr == null || pidStr.trim().isEmpty()) continue;
                 if (qtyStr == null || qtyStr.trim().isEmpty()) continue;
 
@@ -118,8 +113,6 @@ public class BillController extends HttpServlet {
                 if (qty <= 0) continue;
 
                 Product product = productDAO.getProductById(pid, conn);
-                System.out.println("[DEBUG] Retrieved product: " + product);
-
                 if (product == null) {
                     throw new ServletException("Product not found with ID: " + pid);
                 }
@@ -127,23 +120,16 @@ public class BillController extends HttpServlet {
                 items.add(new BillItem(product, qty, product.getPrice()));
             }
 
-            System.out.println("[DEBUG] Total valid bill items: " + items.size());
-
             if (items.isEmpty()) {
                 throw new ServletException("No valid products with quantity to create a bill.");
             }
 
             int billId = billService.createBill(customer, items, staffId, conn);
-            System.out.println("[DEBUG] Created bill with ID: " + billId);
-
             if (billId <= 0) {
                 throw new ServletException("Failed to create bill");
             }
 
             Bill fullBill = billDAO.getBillById(billId, conn);
-            System.out.println("[DEBUG] Retrieved full bill: " + fullBill);
-            System.out.println("[DEBUG] Bill items count: " + (fullBill.getItems() == null ? 0 : fullBill.getItems().size()));
-
             request.setAttribute("bill", fullBill);
             request.getRequestDispatcher("/WEB-INF/view/bill_success.jsp").forward(request, response);
 
@@ -159,6 +145,30 @@ public class BillController extends HttpServlet {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        request.getRequestDispatcher("/WEB-INF/view/bill_list.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/view/allTransaction.jsp").forward(request, response);
     }
+
+    private void viewBillDetails(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String billIdStr = request.getParameter("billId");
+        if (billIdStr == null) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bill ID is required");
+            return;
+        }
+
+        try (Connection conn = DBConnectionFactory.getConnection()) {
+            int billId = Integer.parseInt(billIdStr);
+            Bill bill = billDAO.getBillById(billId, conn);
+            if (bill == null) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Bill not found");
+                return;
+            }
+            request.setAttribute("bill", bill);
+            // FIXED: Added missing leading slash in JSP path
+            request.getRequestDispatcher("/WEB-INF/view/bill_view.jsp").forward(request, response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ServletException("Error retrieving bill details", e);
+        }
+    }
+    
 }

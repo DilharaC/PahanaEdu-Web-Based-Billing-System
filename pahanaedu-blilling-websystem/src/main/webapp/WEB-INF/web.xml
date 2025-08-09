@@ -66,16 +66,16 @@
 		<servlet-class>com.pahanaedu.controller.ResetPasswordController</servlet-class>
 	</servlet>
 	<servlet>
-		<servlet-name>ForgotPasswordController</servlet-name>
-		<display-name>ForgotPasswordController</display-name>
-		<description></description>
-		<servlet-class>com.pahanaedu.controller.ForgotPasswordController</servlet-class>
-	</servlet>
-	<servlet>
 		<servlet-name>BillController</servlet-name>
 		<display-name>BillController</display-name>
 		<description></description>
 		<servlet-class>com.pahanaedu.controller.BillController</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>ForgotPasswordController</servlet-name>
+		<display-name>ForgotPasswordController</display-name>
+		<description></description>
+		<servlet-class>com.pahanaedu.controller.ForgotPasswordController</servlet-class>
 	</servlet>
 	
 	
@@ -121,12 +121,12 @@
 		<url-pattern>/ResetPasswordController</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
-		<servlet-name>ForgotPasswordController</servlet-name>
-		<url-pattern>/ForgotPasswordController</url-pattern>
-	</servlet-mapping>
-	<servlet-mapping>
 		<servlet-name>BillController</servlet-name>
 		<url-pattern>/BillController</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>ForgotPasswordController</servlet-name>
+		<url-pattern>/ForgotPasswordController</url-pattern>
 	</servlet-mapping>
 	
 	<welcome-file-list>

@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import com.pahanaedu.model.Staff;
+import java.sql.Timestamp;
 import com.pahanaedu.dao.DBConnectionFactory;
 
 public class StaffDAO {
@@ -194,5 +195,39 @@ public class StaffDAO {
         staff.setStatus(rs.getString("status"));
         return staff;
     }
+// forget password 
+    public Staff findByResetToken(String token) {
+        Staff staff = null;
+        String sql = "SELECT * FROM staff WHERE reset_token = ? AND reset_token_expiry > CURRENT_TIMESTAMP";
 
+        try (Connection conn = DBConnectionFactory.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, token);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    staff = extractStaff(rs);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return staff;
+    }
+    public boolean updateResetTokenWithExpiry(int staffId, String token, Timestamp expiry) {
+        String sql = "UPDATE staff SET reset_token = ?, reset_token_expiry = ? WHERE staff_id = ?";
+        try (Connection conn = DBConnectionFactory.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, token);
+            if (expiry != null) {
+                ps.setTimestamp(2, expiry);
+            } else {
+                ps.setNull(2, java.sql.Types.TIMESTAMP);
+            }
+            ps.setInt(3, staffId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }
