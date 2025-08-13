@@ -643,8 +643,11 @@
       <thead>
         <tr>
           <th scope="col">Bill ID</th>
+          <th scope="col">Staff id</th>
           <th scope="col">Date</th>
           <th scope="col">Customer</th>
+          
+          
           <th scope="col">Customer Phone</th>
           <th scope="col">Total Amount (Rs)</th>
         </tr>
@@ -653,8 +656,10 @@
         <c:forEach var="bill" items="${last5Bills}">
           <tr>
             <td>${bill.billId}</td>
+            <td>${bill.staffId}</td>  <!-- Display Staff ID -->
             <td>${bill.billDate}</td>
             <td>${bill.customer.name}</td>
+             
             <td>${bill.customer.phone}</td>
             <td>${bill.totalAmount}</td>
           </tr>
