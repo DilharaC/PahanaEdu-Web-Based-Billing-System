@@ -11,8 +11,12 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
+import com.pahanaedu.model.AuditLog;
 import com.pahanaedu.model.Customer;
+import com.pahanaedu.model.Staff;
+import com.pahanaedu.service.AuditLogService;
 import com.pahanaedu.service.CustomerService;
 
 /**
@@ -91,21 +95,114 @@ public class CustomerController extends HttpServlet {
 
     private void addCustomer(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException {
         Customer customer = extractCustomerFromRequest(request);
-        customerService.addCustomer(customer);
+
+        // Add customer and get the generated ID
+        int generatedId = CustomerService.getInstance().addCustomer(customer);
+        customer.setCustomerId(generatedId); // optional: store ID in object
+
+        // Get the staff who performed the action
+        HttpSession session = request.getSession(false);
+        String performedBy = "Unknown";
+        if (session != null && session.getAttribute("staff") != null) {
+            performedBy = ((Staff) session.getAttribute("staff")).getFullName();
+        }
+
+        // Audit log
+        AuditLog log = new AuditLog();
+        log.setAction("Add Customer");
+        log.setPerformedBy(performedBy);
+        log.setTargetEntity("Customer");
+        log.setTargetId(generatedId);
+        log.setDetails("Added customer: " + customer.getName() + " (ID: " + generatedId + ")");
+        AuditLogService.getInstance().logAction(log);
+
         response.sendRedirect("Customer?action=list");
     }
 
     private void updateCustomer(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException {
         int customerId = Integer.parseInt(request.getParameter("customerId"));
+
+        // Get existing customer
+        Customer existingCustomer = customerService.getCustomerById(customerId);
+
+        // Extract new data
         Customer customer = extractCustomerFromRequest(request);
         customer.setCustomerId(customerId);
+
+        // Update customer in DB
         customerService.updateCustomer(customer);
+
+        // Get staff who performed the action
+        HttpSession session = request.getSession(false);
+        String performedBy = "Unknown";
+        if (session != null && session.getAttribute("staff") != null) {
+            performedBy = ((Staff) session.getAttribute("staff")).getFullName();
+        }
+
+        // Build details string for changed fields
+        StringBuilder details = new StringBuilder("Updated customer ID: " + customerId);
+        boolean changed = false;
+
+        if (!existingCustomer.getName().equals(customer.getName())) {
+            details.append(", Name: '").append(existingCustomer.getName()).append("' → '").append(customer.getName()).append("'");
+            changed = true;
+        }
+        if (!existingCustomer.getEmail().equals(customer.getEmail())) {
+            details.append(", Email: '").append(existingCustomer.getEmail()).append("' → '").append(customer.getEmail()).append("'");
+            changed = true;
+        }
+        if (!existingCustomer.getPhone().equals(customer.getPhone())) {
+            details.append(", Phone: '").append(existingCustomer.getPhone()).append("' → '").append(customer.getPhone()).append("'");
+            changed = true;
+        }
+        if (!existingCustomer.getAddress().equals(customer.getAddress())) {
+            details.append(", Address: '").append(existingCustomer.getAddress()).append("' → '").append(customer.getAddress()).append("'");
+            changed = true;
+        }
+        if (existingCustomer.isActive() != customer.isActive()) {
+            details.append(", Active: '").append(existingCustomer.isActive()).append("' → '").append(customer.isActive()).append("'");
+            changed = true;
+        }
+
+        // Log only if something changed
+        if (changed) {
+            AuditLog log = new AuditLog();
+            log.setAction("Update Customer");
+            log.setPerformedBy(performedBy);
+            log.setTargetEntity("Customer");
+            log.setTargetId(customerId);
+            log.setDetails(details.toString());
+            AuditLogService.getInstance().logAction(log);
+        }
+
         response.sendRedirect("Customer?action=list");
     }
-
     private void deleteCustomer(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException {
         int customerId = Integer.parseInt(request.getParameter("customerId"));
+        
+        // Get the customer before deletion for logging
+        Customer customer = customerService.getCustomerById(customerId);
+
+        // Delete customer from database
         customerService.deleteCustomer(customerId);
+
+        // Get the staff who performed the action
+        HttpSession session = request.getSession(false);
+        String performedBy = "Unknown";
+        if (session != null && session.getAttribute("staff") != null) {
+            performedBy = ((Staff) session.getAttribute("staff")).getFullName();
+        }
+
+        // Log the deletion
+        AuditLog log = new AuditLog();
+        log.setAction("Delete Customer");
+        log.setPerformedBy(performedBy);
+        log.setTargetEntity("Customer");
+        log.setTargetId(customerId);
+        log.setDetails("Deleted customer: " + (customer != null ? customer.getName() : "Unknown") + " (ID: " + customerId + ")");
+        AuditLogService.getInstance().logAction(log);
+
+        // Redirect back to list
         response.sendRedirect("Customer?action=list");
     }
 
@@ -115,12 +212,16 @@ public class CustomerController extends HttpServlet {
         String phone = request.getParameter("phone");
         String address = request.getParameter("address");
 
+        // Parse active from select
+        String activeParam = request.getParameter("active");
+        boolean active = "true".equalsIgnoreCase(activeParam); // true if "true", false otherwise
+
         Customer customer = new Customer();
         customer.setName(name);
         customer.setEmail(email);
         customer.setPhone(phone);
         customer.setAddress(address);
+        customer.setActive(active); // <-- now correctly set from select
 
         return customer;
-    }
-}
+    }}

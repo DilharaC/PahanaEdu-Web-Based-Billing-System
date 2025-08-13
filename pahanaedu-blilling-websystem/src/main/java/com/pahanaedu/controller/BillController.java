@@ -2,6 +2,7 @@ package com.pahanaedu.controller;
 
 import com.pahanaedu.dao.*;
 import com.pahanaedu.model.*;
+import com.pahanaedu.service.AuditLogService;
 import com.pahanaedu.service.BillService;
 
 import javax.servlet.*;
@@ -124,10 +125,34 @@ public class BillController extends HttpServlet {
                 throw new ServletException("No valid products with quantity to create a bill.");
             }
 
+            // Create bill
             int billId = billService.createBill(customer, items, staffId, conn);
             if (billId <= 0) {
                 throw new ServletException("Failed to create bill");
             }
+
+            // --- Audit log for bill creation ---
+            AuditLog log = new AuditLog();
+            log.setAction("Create Bill");
+            log.setPerformedBy("Staff ID: " + staffId); // Or fetch full name if available in session
+            log.setTargetEntity("Bill");
+            log.setTargetId(billId);
+
+            StringBuilder details = new StringBuilder("Created bill for customer: " + customer.getName() + " (ID: " + customerId + ")");
+            details.append(", Items: ");
+            for (BillItem item : items) {
+                details.append(item.getProduct().getName())
+                       .append(" x").append(item.getQuantity())
+                       .append(", ");
+            }
+            // Remove trailing comma and space
+            if (details.length() > 2) {
+                details.setLength(details.length() - 2);
+            }
+
+            log.setDetails(details.toString());
+            AuditLogService.getInstance().logAction(log);
+            // --- End of audit log ---
 
             Bill fullBill = billDAO.getBillById(billId, conn);
             request.setAttribute("bill", fullBill);

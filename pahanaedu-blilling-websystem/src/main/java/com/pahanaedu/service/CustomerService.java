@@ -27,9 +27,9 @@ public class CustomerService {
         return instance;
     }
 
-    public void addCustomer(Customer customer) throws SQLException {
+    public int addCustomer(Customer customer) throws SQLException {
         try (Connection conn = DBConnectionFactory.getConnection()) {
-            customerDAO.addCustomer(customer, conn);
+            return customerDAO.addCustomer(customer, conn);
         }
     }
 

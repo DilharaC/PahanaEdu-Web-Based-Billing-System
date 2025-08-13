@@ -21,6 +21,30 @@ public class ProductDAO {
         }
     }
 
+    public int addProductAndGetId(Product product, Connection conn) throws SQLException {
+        String query = "INSERT INTO product (name, description, category, price, quantity, available) VALUES (?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, product.getName());
+            ps.setString(2, product.getDescription());
+            ps.setString(3, product.getCategory());
+            ps.setDouble(4, product.getPrice());
+            ps.setInt(5, product.getQuantity());
+            ps.setBoolean(6, product.isAvailable());
+
+            int affectedRows = ps.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("Creating product failed, no rows affected.");
+            }
+
+            try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    return generatedKeys.getInt(1);
+                } else {
+                    throw new SQLException("Creating product failed, no ID obtained.");
+                }
+            }
+        }
+    }
     public List<Product> getAllProducts(Connection conn) throws SQLException {
         List<Product> products = new ArrayList<>();
         String query = "SELECT * FROM product";

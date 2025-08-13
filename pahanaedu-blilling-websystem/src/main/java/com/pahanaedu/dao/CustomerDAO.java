@@ -12,18 +12,24 @@ import com.pahanaedu.model.Customer;
 
 public class CustomerDAO {
 
-    public void addCustomer(Customer customer, Connection conn) throws SQLException {
-        String query = "INSERT INTO customer (name, email, phone, address, active) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement ps = conn.prepareStatement(query)) {
-            ps.setString(1, customer.getName());
-            ps.setString(2, customer.getEmail());
-            ps.setString(3, customer.getPhone());
-            ps.setString(4, customer.getAddress());
-            ps.setBoolean(5, customer.isActive());
-            ps.executeUpdate();
-        }
-    }
+	public int addCustomer(Customer customer, Connection conn) throws SQLException {
+	    String query = "INSERT INTO customer (name, email, phone, address, active) VALUES (?, ?, ?, ?, ?)";
+	    try (PreparedStatement ps = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+	        ps.setString(1, customer.getName());
+	        ps.setString(2, customer.getEmail());
+	        ps.setString(3, customer.getPhone());
+	        ps.setString(4, customer.getAddress());
+	        ps.setBoolean(5, customer.isActive());
+	        ps.executeUpdate();
 
+	        try (ResultSet rs = ps.getGeneratedKeys()) {
+	            if (rs.next()) {
+	                return rs.getInt(1); // return generated customer_id
+	            }
+	        }
+	    }
+	    return -1; // if failed
+	}
     public List<Customer> getAllCustomers(Connection conn) throws SQLException {
         List<Customer> customers = new ArrayList<>();
         String query = "SELECT * FROM customer";
