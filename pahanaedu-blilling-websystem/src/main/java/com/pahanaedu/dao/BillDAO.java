@@ -134,34 +134,37 @@ public class BillDAO {
         }
         return items;
     }
-
-    // Get the latest 5 bills.
     public List<Bill> getLast5Bills(Connection conn) throws SQLException {
         List<Bill> bills = new ArrayList<>();
+        
         String sql = "SELECT b.bill_id, b.bill_date, b.total_amount, " +
-                     "c.name AS customer_name, c.phone AS customer_phone " +
+                     "c.name AS customer_name, c.phone AS customer_phone, " +
+                     "b.staff_id " +
                      "FROM bill b " +
                      "JOIN customer c ON b.customer_id = c.customer_id " +
                      "ORDER BY b.bill_id DESC LIMIT 5";
 
         try (PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
+
             while (rs.next()) {
                 Bill bill = new Bill();
                 bill.setBillId(rs.getInt("bill_id"));
                 bill.setBillDate(rs.getDate("bill_date"));
                 bill.setTotalAmount(rs.getDouble("total_amount"));
 
+                // Customer info
                 Customer customer = new Customer();
                 customer.setName(rs.getString("customer_name"));
                 customer.setPhone(rs.getString("customer_phone"));
                 bill.setCustomer(customer);
 
+                // Staff ID only
+                bill.setStaffId(rs.getInt("staff_id"));
+
                 bills.add(bill);
             }
         }
         return bills;
-    }
-
-   
-}
+    
+    }}

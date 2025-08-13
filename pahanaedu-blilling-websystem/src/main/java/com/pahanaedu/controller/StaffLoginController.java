@@ -77,6 +77,9 @@ public class StaffLoginController extends HttpServlet {
                 session.setAttribute("staff", staff);
                 session.setAttribute("role", staff.getRole());
                 session.setAttribute("fullName", staff.getFullName());
+                
+                session.setAttribute("staffId", staff.getStaffId());       // for BillController
+                session.setAttribute("staffName", staff.getFullName());    // optional, for display
 
                 String role = staff.getRole() != null ? staff.getRole().trim().toLowerCase() : "";
 

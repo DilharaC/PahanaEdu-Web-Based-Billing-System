@@ -83,6 +83,12 @@
 		<description></description>
 		<servlet-class>com.pahanaedu.controller.AdminDashboardController</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>AuditLogController</servlet-name>
+		<display-name>AuditLogController</display-name>
+		<description></description>
+		<servlet-class>com.pahanaedu.controller.AuditLogController</servlet-class>
+	</servlet>
 	
 	
 	<servlet-mapping>
@@ -137,6 +143,10 @@
 	<servlet-mapping>
 		<servlet-name>AdminDashboardController</servlet-name>
 		<url-pattern>/AdminDashboardController</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>AuditLogController</servlet-name>
+		<url-pattern>/AuditLogController</url-pattern>
 	</servlet-mapping>
 	
 	<welcome-file-list>

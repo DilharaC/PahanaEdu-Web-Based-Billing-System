@@ -285,7 +285,8 @@
             <th><i class='bx bx-hash'></i> Bill ID</th>
             <th><i class='bx bx-calendar'></i> Date</th>
             <th><i class='bx bxs-user'></i> Customer</th>
-            <th><i class='bx bx-phone'></i> Phone</th>  <!-- Added phone column -->
+            <th><i class='bx bx-phone'></i> Phone</th>
+            <th><i class='bx bx-user-circle'></i> Staff ID</th>  <!-- Added Staff ID column -->
             <th><i class='bx bx-money'></i> Total Amount (Rs)</th>
             <th><i class='bx bx-cog'></i> Actions</th>
         </tr>
@@ -298,12 +299,12 @@
                         <td>${bill.billId}</td>
                         <td><fmt:formatDate value="${bill.billDate}" pattern="dd MMM yyyy" /></td>
                         <td>${bill.customer.name}</td>
-                        <td>${bill.customer.phone}</td>  <!-- Display phone -->
+                        <td>${bill.customer.phone}</td>
+                        <td>${bill.staffId}</td>  <!-- Display Staff ID -->
                         <td>${bill.totalAmount}</td>
                         <td>
                             <a href="Bill?action=view&billId=${bill.billId}" class="btn-view" aria-label="View bill ${bill.billId}">
                                 <i class='bx bx-show'></i> View
-                               
                             </a>
                         </td>
                     </tr>
@@ -311,7 +312,7 @@
             </c:when>
             <c:otherwise>
                 <tr>
-                    <td colspan="6" style="text-align:center; font-style: italic; color: #888;">
+                    <td colspan="7" style="text-align:center; font-style: italic; color: #888;">
                         No transactions found.
                     </td>
                 </tr>

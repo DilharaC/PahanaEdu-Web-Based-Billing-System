@@ -21,7 +21,6 @@ public class BillController extends HttpServlet {
     private CustomerDAO customerDAO = new CustomerDAO();
     private ProductDAO productDAO = new ProductDAO();
 
-  
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
@@ -41,7 +40,6 @@ public class BillController extends HttpServlet {
                     viewBills(request, response); // Show all bills list
                 }
                 break;
-           
 
             default:
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Unknown action");
@@ -68,36 +66,34 @@ public class BillController extends HttpServlet {
             request.setAttribute("products", productDAO.getAllProducts(conn));
         } catch (Exception e) {
             e.printStackTrace();
-            // You may want to forward to an error page here
         }
         request.getRequestDispatcher("/WEB-INF/view/bill_form.jsp").forward(request, response);
     }
 
     private void saveBill(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        int customerId;
-        Integer staffId;
         List<BillItem> items = new ArrayList<>();
 
         try (Connection conn = DBConnectionFactory.getConnection()) {
+            // Get customer ID from form
             String customerIdStr = request.getParameter("customerId");
             if (customerIdStr == null || customerIdStr.trim().isEmpty()) {
                 throw new ServletException("Customer ID is missing.");
             }
-            customerId = Integer.parseInt(customerIdStr.trim());
-
+            int customerId = Integer.parseInt(customerIdStr.trim());
             Customer customer = customerDAO.getCustomerById(customerId, conn);
             if (customer == null) {
                 throw new ServletException("Customer not found with ID: " + customerId);
             }
 
-            staffId = (Integer) request.getSession().getAttribute("staffId");
+            // --- Get staff ID from session ---
+            Integer staffId = (Integer) request.getSession().getAttribute("staffId");
             if (staffId == null) {
-                staffId = 1; // default staff for testing
+                throw new ServletException("No staff is logged in.");
             }
 
+            // Get bill items from form
             String[] productIds = request.getParameterValues("productId");
             String[] quantities = request.getParameterValues("quantity");
-
             if (productIds == null || quantities == null || productIds.length != quantities.length) {
                 throw new ServletException("Product or quantity data is invalid.");
             }
@@ -134,7 +130,7 @@ public class BillController extends HttpServlet {
             // --- Audit log for bill creation ---
             AuditLog log = new AuditLog();
             log.setAction("Create Bill");
-            log.setPerformedBy("Staff ID: " + staffId); // Or fetch full name if available in session
+            log.setPerformedBy("Staff ID: " + staffId);
             log.setTargetEntity("Bill");
             log.setTargetId(billId);
 
@@ -145,10 +141,7 @@ public class BillController extends HttpServlet {
                        .append(" x").append(item.getQuantity())
                        .append(", ");
             }
-            // Remove trailing comma and space
-            if (details.length() > 2) {
-                details.setLength(details.length() - 2);
-            }
+            if (details.length() > 2) details.setLength(details.length() - 2);
 
             log.setDetails(details.toString());
             AuditLogService.getInstance().logAction(log);
@@ -188,12 +181,11 @@ public class BillController extends HttpServlet {
                 return;
             }
             request.setAttribute("bill", bill);
-            // FIXED: Added missing leading slash in JSP path
             request.getRequestDispatcher("/WEB-INF/view/bill_view.jsp").forward(request, response);
         } catch (Exception e) {
             e.printStackTrace();
             throw new ServletException("Error retrieving bill details", e);
         }
     }
-    
+
 }
