@@ -30,7 +30,7 @@ public class ProductService {
 
     public void addProduct(Product product) throws SQLException {
         try (Connection conn = DBConnectionFactory.getConnection()) {
-            productDAO.addProduct(product, conn);
+            productDAO.addProduct(product, conn); // the product object now has the generated ID
         }
     }
 
@@ -84,6 +84,11 @@ public class ProductService {
 
     public int getTotalProducts() throws SQLException {
         return productDAO.countProducts();
+    }
+    public int addProductAndGetId(Product product) throws SQLException {
+        try (Connection conn = DBConnectionFactory.getConnection()) {
+            return productDAO.addProductAndGetId(product, conn);
+        }
     }
 }
     

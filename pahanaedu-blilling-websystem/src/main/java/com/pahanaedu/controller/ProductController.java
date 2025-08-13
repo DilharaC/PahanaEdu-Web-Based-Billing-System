@@ -10,8 +10,12 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
+import com.pahanaedu.model.AuditLog;
 import com.pahanaedu.model.Product;
+import com.pahanaedu.model.Staff;
+import com.pahanaedu.service.AuditLogService;
 import com.pahanaedu.service.ProductService;
 
 /**
@@ -116,26 +120,109 @@ public class ProductController extends HttpServlet {
         request.getRequestDispatcher("WEB-INF/view/editProduct.jsp").forward(request, response);
     }
 
-    private void addProduct(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException, ServletException {
+    private void addProduct(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException {
+        // Extract product info
         Product product = extractProductFromRequest(request);
-        productService.addProduct(product);
+
+        // Add product and get generated ID
+        int productId = ProductService.getInstance().addProductAndGetId(product);
+        product.setProductId(productId); // now you have the correct ID
+
+        // Audit log
+        HttpSession session = request.getSession(false);
+        String performedBy = "Unknown";
+        if (session != null && session.getAttribute("staff") != null) {
+            performedBy = ((Staff) session.getAttribute("staff")).getFullName();
+        }
+
+        AuditLog log = new AuditLog();
+        log.setAction("Add Product");
+        log.setPerformedBy(performedBy);
+        log.setTargetEntity("Product");
+        log.setTargetId(product.getProductId());
+        log.setDetails("Added product: " + product.getName() + " (ID: " + product.getProductId() + ")");
+        AuditLogService.getInstance().logAction(log);
+
         response.sendRedirect("Product?action=list");
     }
 
     private void updateProduct(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException, ServletException {
         int productId = Integer.parseInt(request.getParameter("productId"));
-        Product product = extractProductFromRequest(request);
-        product.setProductId(productId);
-        productService.updateProduct(product);
+        
+        // Get existing product from DB
+        Product oldProduct = productService.getProductById(productId);
+        
+        // Get new values from request
+        Product newProduct = extractProductFromRequest(request);
+        newProduct.setProductId(productId);
+        
+        // Update product in DB
+        productService.updateProduct(newProduct);
+
+        // Build details string for audit log
+        StringBuilder changes = new StringBuilder();
+        if (!oldProduct.getName().equals(newProduct.getName())) {
+            changes.append("Name: '").append(oldProduct.getName()).append("' → '").append(newProduct.getName()).append("'; ");
+        }
+        if (!oldProduct.getDescription().equals(newProduct.getDescription())) {
+            changes.append("Description: '").append(oldProduct.getDescription()).append("' → '").append(newProduct.getDescription()).append("'; ");
+        }
+        if (!oldProduct.getCategory().equals(newProduct.getCategory())) {
+            changes.append("Category: '").append(oldProduct.getCategory()).append("' → '").append(newProduct.getCategory()).append("'; ");
+        }
+        if (oldProduct.getPrice() != newProduct.getPrice()) {
+            changes.append("Price: ").append(oldProduct.getPrice()).append(" → ").append(newProduct.getPrice()).append("; ");
+        }
+        if (oldProduct.getQuantity() != newProduct.getQuantity()) {
+            changes.append("Quantity: ").append(oldProduct.getQuantity()).append(" → ").append(newProduct.getQuantity()).append("; ");
+        }
+        if (oldProduct.isAvailable() != newProduct.isAvailable()) {
+            changes.append("Available: ").append(oldProduct.isAvailable()).append(" → ").append(newProduct.isAvailable()).append("; ");
+        }
+
+        // Audit log
+        HttpSession session = request.getSession(false);
+        String performedBy = "Unknown";
+        if (session != null && session.getAttribute("staff") != null) {
+            performedBy = ((Staff) session.getAttribute("staff")).getFullName();
+        }
+
+        AuditLog log = new AuditLog();
+        log.setAction("Update Product");
+        log.setPerformedBy(performedBy);
+        log.setTargetEntity("Product");
+        log.setTargetId(productId);
+        log.setDetails(changes.toString().isEmpty() ? "No changes made" : changes.toString());
+        AuditLogService.getInstance().logAction(log);
+
         response.sendRedirect("Product?action=list");
     }
-
     private void deleteProduct(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException {
         int productId = Integer.parseInt(request.getParameter("productId"));
+        
+        // Get the product details before deleting
+        Product product = productService.getProductById(productId);
+
+        // Delete product from DB
         productService.deleteProduct(productId);
+
+        // Audit log
+        HttpSession session = request.getSession(false);
+        String performedBy = "Unknown";
+        if (session != null && session.getAttribute("staff") != null) {
+            performedBy = ((Staff) session.getAttribute("staff")).getFullName();
+        }
+
+        AuditLog log = new AuditLog();
+        log.setAction("Delete Product");
+        log.setPerformedBy(performedBy);
+        log.setTargetEntity("Product");
+        log.setTargetId(productId);
+        log.setDetails("Deleted product: " + product.getName() + " (ID: " + productId + ", Category: " + product.getCategory() + ")");
+        AuditLogService.getInstance().logAction(log);
+
         response.sendRedirect("Product?action=list");
     }
-
     // Helper method to parse product data from request parameters
     private Product extractProductFromRequest(HttpServletRequest request) {
         String name = request.getParameter("name");

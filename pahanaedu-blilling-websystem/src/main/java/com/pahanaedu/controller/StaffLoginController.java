@@ -7,7 +7,6 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import java.io.IOException;
-import java.util.UUID;
 
 @WebServlet("/StaffLogin")
 public class StaffLoginController extends HttpServlet {
@@ -21,14 +20,12 @@ public class StaffLoginController extends HttpServlet {
 
         if ("changePassword".equalsIgnoreCase(action)) {
             if (session == null || session.getAttribute("staff") == null) {
-                response.sendRedirect("StaffLogin.jsp");
+                response.sendRedirect(request.getContextPath() + "/StaffLogin.jsp");
                 return;
             }
-            request.getRequestDispatcher("WEB-INF/view/ChangePassword.jsp").forward(request, response);
-
+            request.getRequestDispatcher("/WEB-INF/view/ChangePassword.jsp").forward(request, response);
         } else {
-            // Default to login page
-            response.sendRedirect("StaffLogin.jsp");
+            response.sendRedirect(request.getContextPath() + "/StaffLogin.jsp");
         }
     }
 
@@ -39,9 +36,10 @@ public class StaffLoginController extends HttpServlet {
         if ("changePassword".equalsIgnoreCase(action)) {
             HttpSession session = request.getSession(false);
             if (session == null || session.getAttribute("staff") == null) {
-                response.sendRedirect("StaffLogin.jsp");
+                response.sendRedirect(request.getContextPath() + "/StaffLogin.jsp");
                 return;
             }
+
             Staff staff = (Staff) session.getAttribute("staff");
             String currentPassword = request.getParameter("currentPassword");
             String newPassword = request.getParameter("newPassword");
@@ -49,14 +47,14 @@ public class StaffLoginController extends HttpServlet {
 
             if (!newPassword.equals(confirmPassword)) {
                 request.setAttribute("error", "New password and confirmation do not match.");
-                request.getRequestDispatcher("WEB-INF/view/ChangePassword.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/view/ChangePassword.jsp").forward(request, response);
                 return;
             }
 
             boolean validCurrent = staffService.checkPassword(staff.getStaffId(), currentPassword);
             if (!validCurrent) {
                 request.setAttribute("error", "Current password is incorrect.");
-                request.getRequestDispatcher("WEB-INF/view/ChangePassword.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/view/ChangePassword.jsp").forward(request, response);
                 return;
             }
 
@@ -66,7 +64,7 @@ public class StaffLoginController extends HttpServlet {
             } else {
                 request.setAttribute("error", "Failed to change password. Try again.");
             }
-            request.getRequestDispatcher("WEB-INF/view/ChangePassword.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/view/ChangePassword.jsp").forward(request, response);
 
         } else {
             // Login logic
@@ -80,14 +78,16 @@ public class StaffLoginController extends HttpServlet {
                 session.setAttribute("role", staff.getRole());
                 session.setAttribute("fullName", staff.getFullName());
 
-                if ("admin".equalsIgnoreCase(staff.getRole())) {
-                    response.sendRedirect("AdminDashboard?action=dashboard");
+                String role = staff.getRole() != null ? staff.getRole().trim().toLowerCase() : "";
+
+                if ("admin".equals(role)) {
+                    response.sendRedirect(request.getContextPath() + "/AdminDashboard?action=dashboard");
                 } else {
-                    response.sendRedirect("StaffDashboard?action=dashboard");
+                    response.sendRedirect(request.getContextPath() + "/StaffDashboard?action=dashboard");
                 }
             } else {
                 request.setAttribute("error", "Invalid username or password.");
-                request.getRequestDispatcher("StaffLogin.jsp").forward(request, response);
+                request.getRequestDispatcher("/StaffLogin.jsp").forward(request, response);
             }
         }
     }

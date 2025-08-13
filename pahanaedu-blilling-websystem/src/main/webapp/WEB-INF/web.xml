@@ -77,6 +77,12 @@
 		<description></description>
 		<servlet-class>com.pahanaedu.controller.ForgotPasswordController</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>AdminDashboardController</servlet-name>
+		<display-name>AdminDashboardController</display-name>
+		<description></description>
+		<servlet-class>com.pahanaedu.controller.AdminDashboardController</servlet-class>
+	</servlet>
 	
 	
 	<servlet-mapping>
@@ -127,6 +133,10 @@
 	<servlet-mapping>
 		<servlet-name>ForgotPasswordController</servlet-name>
 		<url-pattern>/ForgotPasswordController</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>AdminDashboardController</servlet-name>
+		<url-pattern>/AdminDashboardController</url-pattern>
 	</servlet-mapping>
 	
 	<welcome-file-list>
