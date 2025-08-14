@@ -38,9 +38,9 @@ public class BillController extends HttpServlet {
             case "view":
                 String billIdStr = request.getParameter("billId");
                 if (billIdStr != null) {
-                    viewBillDetails(request, response); // Show single bill details page
+                    viewBillDetails(request, response); 
                 } else {
-                    viewBills(request, response); // Show all bills list
+                    viewBills(request, response); 
                 }
                 break;
 

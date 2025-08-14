@@ -9,7 +9,7 @@ import java.util.List;
 
 public class BillDAO {
 
-    // Create a new bill and its bill items. Returns generated bill ID or 0 on failure.
+    
     public int createBill(Bill bill, Connection conn) throws SQLException {
         String billQuery = "INSERT INTO bill (customer_id, staff_id, bill_date, total_amount) VALUES (?, ?, ?, ?)";
         try (PreparedStatement billPs = conn.prepareStatement(billQuery, Statement.RETURN_GENERATED_KEYS)) {

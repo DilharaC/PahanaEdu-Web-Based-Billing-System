@@ -3,6 +3,7 @@ package com.pahanaedu.model;
 public class ProductSales {
     private String productName;
     private int quantitySold;
+    
 
     public String getProductName() { return productName; }
     public void setProductName(String productName) { this.productName = productName; }
