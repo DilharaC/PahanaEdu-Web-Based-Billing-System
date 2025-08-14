@@ -4,6 +4,7 @@ import com.pahanaedu.dao.*;
 import com.pahanaedu.model.*;
 import com.pahanaedu.service.AuditLogService;
 import com.pahanaedu.service.BillService;
+import com.pahanaedu.model.ProductSales;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebServlet;
