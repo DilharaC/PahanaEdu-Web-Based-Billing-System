@@ -20,14 +20,33 @@ jobs:
       - name: List files in project folder
         run: ls -la pahanaedu-blilling-websystem
 
-      - name: Check model files
-        run: ls -R pahanaedu-blilling-websystem/src/main/java/com/pahanaedu/model
-
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
+
+      - name: Check model files
+        run: |
+          echo "Checking ProductSales.java package and class..."
+          FILE="pahanaedu-blilling-websystem/src/main/java/com/pahanaedu/model/ProductSales.java"
+          if [ ! -f "$FILE" ]; then
+            echo "ERROR: $FILE does not exist!"
+            exit 1
+          fi
+          # Check package declaration
+          PACKAGE_LINE=$(head -n 1 $FILE)
+          if [[ "$PACKAGE_LINE" != "package com.pahanaedu.model;" ]]; then
+            echo "ERROR: Package declaration mismatch in ProductSales.java"
+            exit 1
+          fi
+          # Check class declaration
+          CLASS_LINE=$(grep -E "public class ProductSales" $FILE)
+          if [ -z "$CLASS_LINE" ]; then
+            echo "ERROR: Class declaration not found in ProductSales.java"
+            exit 1
+          fi
+          echo "ProductSales.java looks correct ✅"
 
       - name: Build with Maven
         run: |
