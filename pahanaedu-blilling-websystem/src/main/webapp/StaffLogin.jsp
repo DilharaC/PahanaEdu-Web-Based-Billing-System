@@ -50,6 +50,20 @@
   }
   .icon-top:hover { transform: scale(1.1); }
 
+  .close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 24px;
+    color: #e74c3c;
+    cursor: pointer;
+    transition: color 0.3s ease, transform 0.2s ease;
+  }
+  .close-btn:hover {
+    color: #c0392b;
+    transform: scale(1.2);
+  }
+
   form {
     display: flex;
     flex-direction: column;
@@ -99,7 +113,6 @@
     border-radius: 10px;
     cursor: pointer;
     transition: background 0.3s ease, transform 0.2s ease;
-    margin-bottom: 10px;
   }
   button.login-btn:hover {
     background: #2e7d32;
@@ -134,6 +147,9 @@
 <body>
 
 <div class="login-container" role="main" aria-label="Staff Login Form">
+  <!-- Close Button -->
+  <i class='bx bx-x close-btn' aria-label="Close Login"></i>
+
   <i class='bx bx-user-circle icon-top' aria-hidden="true"></i>
   <h2>Staff Login</h2>
 
@@ -157,6 +173,15 @@
     <div class="error" role="alert">${error}</div>
   </c:if>
 </div>
+
+<script>
+  // Close button functionality
+  document.querySelector('.close-btn').addEventListener('click', function() {
+      // Attempt to close the window
+      window.open('', '_self');
+      window.close();
+  });
+</script>
 
 </body>
 </html>

@@ -4,6 +4,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -34,6 +35,22 @@ public class StaffService {
 
     public boolean updatePassword(int staffId, String newPassword) {
         return staffDAO.updatePassword(staffId, newPassword);
+    }
+    
+    public List<Staff> getAllStaff() {
+        return staffDAO.getAllStaff();
+    }
+
+    public Staff getStaffById(int staffId) {
+        return staffDAO.getStaffById(staffId);
+    }
+
+    public boolean updateStaff(Staff staff) {
+        return staffDAO.updateStaff(staff);
+    }
+
+    public boolean deleteStaff(int staffId) {
+        return staffDAO.deleteStaff(staffId);
     }
 
    //forget password

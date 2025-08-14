@@ -66,4 +66,11 @@ public class CustomerService {
     public int getTotalCustomers() throws SQLException {
         return customerDAO.countCustomers();
     }
+    public List<Integer> getMonthlyNewCustomers(Connection conn, int months) throws Exception {
+        return customerDAO.getMonthlyNewCustomers(conn, months);
+    }
+
+    public List<String> getLastMonthsLabels(Connection conn, int months) throws Exception {
+        return customerDAO.getLastMonthsLabels(conn, months);
+    }
 }

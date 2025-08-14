@@ -8,6 +8,9 @@ import java.sql.SQLException;
 
 import com.pahanaedu.model.Staff;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.pahanaedu.dao.DBConnectionFactory;
 
 public class StaffDAO {
@@ -181,20 +184,20 @@ public class StaffDAO {
     }
 
     // Helper to extract Staff object from ResultSet
-    private Staff extractStaff(ResultSet rs) throws SQLException {
-        Staff staff = new Staff();
-        staff.setStaffId(rs.getInt("staff_id"));
-        staff.setUsername(rs.getString("username"));
-        staff.setPassword(rs.getString("password"));
-        staff.setFullName(rs.getString("full_name"));
-        staff.setEmail(rs.getString("email"));
-        staff.setPhone(rs.getString("phone"));
-        staff.setNic(rs.getString("nic"));
-        staff.setJobTitle(rs.getString("job_title"));
-        staff.setRole(rs.getString("role"));
-        staff.setStatus(rs.getString("status"));
-        return staff;
-    }
+//    private Staff extractStaff(ResultSet rs) throws SQLException {
+//        Staff staff = new Staff();
+//        staff.setStaffId(rs.getInt("staff_id"));
+//        staff.setUsername(rs.getString("username"));
+//        staff.setPassword(rs.getString("password"));
+//        staff.setFullName(rs.getString("full_name"));
+//        staff.setEmail(rs.getString("email"));
+//        staff.setPhone(rs.getString("phone"));
+//        staff.setNic(rs.getString("nic"));
+//        staff.setJobTitle(rs.getString("job_title"));
+//        staff.setRole(rs.getString("role"));
+//        staff.setStatus(rs.getString("status"));
+//        return staff;
+//    }
 // forget password 
     public Staff findByResetToken(String token) {
         Staff staff = null;
@@ -229,5 +232,75 @@ public class StaffDAO {
             e.printStackTrace();
         }
         return false;
+    }
+    public List<Staff> getAllStaff() {
+        List<Staff> staffList = new ArrayList<>();
+        String sql = "SELECT * FROM staff";
+
+        try (Connection conn = DBConnectionFactory.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                staffList.add(extractStaff(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return staffList;
+    }
+
+    public boolean updateStaff(Staff staff) {
+        String sql = "UPDATE staff SET username=?, password=?, full_name=?, email=?, phone=?, nic=?, job_title=?, role=?, status=? WHERE staff_id=?";
+
+        try (Connection conn = DBConnectionFactory.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, staff.getUsername());
+            ps.setString(2, staff.getPassword()); // ⚠ Hash in production
+            ps.setString(3, staff.getFullName());
+            ps.setString(4, staff.getEmail());
+            ps.setString(5, staff.getPhone());
+            ps.setString(6, staff.getNic());
+            ps.setString(7, staff.getJobTitle());
+            ps.setString(8, staff.getRole());
+            ps.setString(9, staff.getStatus());
+            ps.setInt(10, staff.getStaffId());
+
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean deleteStaff(int staffId) {
+        String sql = "DELETE FROM staff WHERE staff_id = ?";
+        try (Connection conn = DBConnectionFactory.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, staffId);
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // === Helper method (already exists in your code, reusing it) ===
+    private Staff extractStaff(ResultSet rs) throws SQLException {
+        Staff staff = new Staff();
+        staff.setStaffId(rs.getInt("staff_id"));
+        staff.setUsername(rs.getString("username"));
+        staff.setPassword(rs.getString("password"));
+        staff.setFullName(rs.getString("full_name"));
+        staff.setEmail(rs.getString("email"));
+        staff.setPhone(rs.getString("phone"));
+        staff.setNic(rs.getString("nic"));
+        staff.setJobTitle(rs.getString("job_title"));
+        staff.setRole(rs.getString("role"));
+        staff.setStatus(rs.getString("status"));
+        return staff;
     }
 }

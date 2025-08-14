@@ -167,4 +167,30 @@ public class BillDAO {
         }
         return bills;
     
-    }}
+    }
+    public List<ProductSales> getTopSellingProducts(Connection conn, int limit) throws SQLException {
+        List<ProductSales> topProducts = new ArrayList<>();
+
+        String sql = "SELECT p.name AS product_name, SUM(bi.quantity) AS total_sold " +
+                     "FROM bill_item bi " +
+                     "JOIN product p ON bi.product_id = p.product_id " +
+                     "GROUP BY bi.product_id " +
+                     "ORDER BY total_sold DESC " +
+                     "LIMIT ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ProductSales psale = new ProductSales();
+                    psale.setProductName(rs.getString("product_name"));
+                    psale.setQuantitySold(rs.getInt("total_sold"));
+                    topProducts.add(psale);
+                }
+            }
+        }
+        return topProducts;
+    }
+    
+    }

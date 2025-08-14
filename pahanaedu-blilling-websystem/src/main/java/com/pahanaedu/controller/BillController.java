@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet("/Bill")
 public class BillController extends HttpServlet {
@@ -41,6 +42,10 @@ public class BillController extends HttpServlet {
                 }
                 break;
 
+            case "topProductsData":
+                sendTopProductsData(request, response);
+                break;
+            
             default:
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Unknown action");
         }
@@ -187,5 +192,22 @@ public class BillController extends HttpServlet {
             throw new ServletException("Error retrieving bill details", e);
         }
     }
-
+    private void sendTopProductsData(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.setContentType("application/json");
+        try (Connection conn = DBConnectionFactory.getConnection()) {
+            List<ProductSales> topProducts = billDAO.getTopSellingProducts(conn, 5);
+            StringBuilder json = new StringBuilder("[");
+            for (int i = 0; i < topProducts.size(); i++) {
+                ProductSales ps = topProducts.get(i);
+                json.append("{\"name\":\"").append(ps.getProductName()).append("\",");
+                json.append("\"sold\":").append(ps.getQuantitySold()).append("}");
+                if (i < topProducts.size() - 1) json.append(",");
+            }
+            json.append("]");
+            response.getWriter().write(json.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.getWriter().write("[]");
+        }
+    }
 }
