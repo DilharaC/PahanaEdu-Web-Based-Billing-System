@@ -20,17 +20,14 @@ jobs:
       - name: List files in project folder
         run: ls -la pahanaedu-blilling-websystem
 
+      - name: Check model files
+        run: ls -R pahanaedu-blilling-websystem/src/main/java/com/pahanaedu/model
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-
-      # Debug step to confirm ProductSales.java exists and package is correct
-      - name: Debug ProductSales file
-        run: |
-          find . -name ProductSales.java
-          head -n 5 $(find . -name ProductSales.java)
 
       - name: Build with Maven
         run: |
