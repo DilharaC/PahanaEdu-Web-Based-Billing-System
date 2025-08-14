@@ -26,6 +26,12 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      # Debug step to confirm ProductSales.java exists and package is correct
+      - name: Debug ProductSales file
+        run: |
+          find . -name ProductSales.java
+          head -n 5 $(find . -name ProductSales.java)
+
       - name: Build with Maven
         run: |
           cd pahanaedu-blilling-websystem
