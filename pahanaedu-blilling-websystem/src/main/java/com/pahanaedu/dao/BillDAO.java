@@ -1,6 +1,7 @@
 package com.pahanaedu.dao;
 
 import com.pahanaedu.model.*;
+import com.pahanaedu.model.ProductSales;
 
 import java.sql.*;
 import java.util.ArrayList;
