@@ -6,10 +6,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Staff Dashboard</title>
+<title>Admin Dashboard</title>
 
 <!-- Boxicons CDN for icons -->
 <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet' />
+
 
 <style>
   /* Reset */
@@ -485,6 +486,9 @@
 </style>
 
 <script>
+
+
+
   // Data arrays from backend (unchanged)
   const topProductNames = [
     <c:forEach var="name" items="${topProductNames}" varStatus="status">
@@ -564,13 +568,15 @@
       }
     });
   });
+
+ 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
 <header>
-  <div><h1>Staff Dashboard</h1></div>
+  <div><h1>Admin Dashboard</h1></div>
 
   <div style="display:flex; align-items:center; gap: 20px;">
     <!-- Dark/Light Mode Toggle Button -->
@@ -631,11 +637,14 @@
   </section>
 
   <nav class="dashboard-links" role="navigation" aria-label="Dashboard quick links">
-    <a href="Product?action=list" class="dashboard-link" role="link"><i class='bx bx-box'></i> Manage Products</a>
-    <a href="Customer?action=list" class="dashboard-link" role="link"><i class='bx bx-user'></i> Manage Customers</a>
-    <a href="Bill?action=create" class="dashboard-link" role="link"><i class='bx bx-receipt'></i> Add Bill</a>
-    <a href="StaffDashboard?action=allTransactions" class="dashboard-link" role="link"><i class='bx bx-history'></i> Transaction History</a>
-  </nav>
+  <a href="Product?action=list" class="dashboard-link" role="link"><i class='bx bx-box'></i> Manage Products</a>
+  <a href="Customer?action=list" class="dashboard-link" role="link"><i class='bx bx-user'></i> Manage Customers</a>
+   <a href="Staff?action=list" class="dashboard-link" role="link"><i class='bx bx-user'></i> Manage Staffs</a>
+  <a href="Bill?action=create" class="dashboard-link" role="link"><i class='bx bx-receipt'></i> Add Bill</a>
+  <a href="StaffDashboard?action=allTransactions" class="dashboard-link" role="link"><i class='bx bx-history'></i> Transaction History</a>
+   
+  <a href="${pageContext.request.contextPath}/AdminDashboard?action=auditLog" class="dashboard-link" role="link"><i class='bx bx-file-find'></i> Audit Log</a>
+</nav>
 <!-- Customer Growth Chart -->
 
 <div style="display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; align-items: flex-start;">
@@ -755,7 +764,6 @@
           <th scope="col">Date</th>
           <th scope="col">Customer</th>
           
-          
           <th scope="col">Customer Phone</th>
           <th scope="col">Total Amount (Rs)</th>
         </tr>
@@ -767,7 +775,6 @@
             <td>${bill.staffId}</td>  <!-- Display Staff ID -->
             <td>${bill.billDate}</td>
             <td>${bill.customer.name}</td>
-             
             <td>${bill.customer.phone}</td>
             <td>${bill.totalAmount}</td>
           </tr>
@@ -787,4 +794,5 @@
 </div>
 
 </body>
+
 </html>

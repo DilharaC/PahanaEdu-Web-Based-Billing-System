@@ -3,6 +3,7 @@ package com.pahanaedu.controller;
 
 
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -13,8 +14,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.pahanaedu.dao.DBConnectionFactory;
 import com.pahanaedu.model.AuditLog;
 import com.pahanaedu.model.Customer;
+
 import com.pahanaedu.model.Staff;
 import com.pahanaedu.service.AuditLogService;
 import com.pahanaedu.service.CustomerService;
@@ -45,9 +48,14 @@ public class CustomerController extends HttpServlet {
             } else if (action.equals("edit")) {
                 showEditForm(request, response);
             }
+            else if (action.equals("monthlyChartData")) {
+                getMonthlyChartData(request, response);
+            }
+            
         } catch (SQLException e) {
             throw new ServletException(e);
         }
+        
     }
 
     @Override
@@ -62,9 +70,11 @@ public class CustomerController extends HttpServlet {
             } else if ("delete".equals(action)) {
                 deleteCustomer(request, response);
             }
+           
         } catch (SQLException e) {
             throw new ServletException(e);
         }
+        
     }
 
     private void listCustomers(HttpServletRequest request, HttpServletResponse response) throws SQLException, ServletException, IOException {
@@ -224,4 +234,25 @@ public class CustomerController extends HttpServlet {
         customer.setActive(active); // <-- now correctly set from select
 
         return customer;
+    }
+    private void getMonthlyChartData(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        int months = 6; // last 6 months
+        try (Connection conn = DBConnectionFactory.getConnection()) {
+            List<Integer> counts = customerService.getMonthlyNewCustomers(conn, months);
+            List<String> labels = customerService.getLastMonthsLabels(conn, months);
+
+            StringBuilder json = new StringBuilder("[");
+            for (int i = 0; i < counts.size(); i++) {
+                json.append("{\"month\":\"").append(labels.get(i))
+                    .append("\", \"count\":").append(counts.get(i)).append("}");
+                if (i < counts.size() - 1) json.append(",");
+            }
+            json.append("]");
+
+            response.setContentType("application/json");
+            response.getWriter().write(json.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error generating chart data");
+        }
     }}

@@ -5,15 +5,20 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import com.pahanaedu.model.Customer;
 
 public class CustomerDAO {
 
 	public int addCustomer(Customer customer, Connection conn) throws SQLException {
-	    String query = "INSERT INTO customer (name, email, phone, address, active) VALUES (?, ?, ?, ?, ?)";
+	    String query = "INSERT INTO customer (name, email, phone, address, active, created_at) " +
+	                   "VALUES (?, ?, ?, ?, ?, NOW())"; // NOW() will insert current timestamp
+
 	    try (PreparedStatement ps = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 	        ps.setString(1, customer.getName());
 	        ps.setString(2, customer.getEmail());
@@ -127,48 +132,42 @@ public class CustomerDAO {
     }
     public List<Integer> getMonthlyNewCustomers(Connection conn, int months) throws SQLException {
         List<Integer> counts = new ArrayList<>();
-        String sql = "SELECT YEAR(registration_date) AS yr, MONTH(registration_date) AS mon, COUNT(*) AS count " +
-                     "FROM customer " +
-                     "WHERE registration_date >= DATE_SUB(CURDATE(), INTERVAL ? MONTH) " +
-                     "GROUP BY yr, mon " +
-                     "ORDER BY yr, mon";
 
-        // Initialize map with last 'months' months keys to 0
-        java.time.LocalDate today = java.time.LocalDate.now();
-        java.util.Map<String, Integer> map = new java.util.HashMap<>();
-        java.time.format.DateTimeFormatter keyFormatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM");
-        for (int i = months - 1; i >= 0; i--) {
-            java.time.LocalDate month = today.minusMonths(i);
-            map.put(month.format(keyFormatter), 0);
-        }
+        String sql = "SELECT COUNT(*) AS total, DATE_FORMAT(created_at, '%b %Y') AS month_label " +
+                "FROM customer " +
+                "WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL ? MONTH) " +
+                "GROUP BY YEAR(created_at), MONTH(created_at) " +
+                "ORDER BY YEAR(created_at), MONTH(created_at)";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, months);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    String key = rs.getInt("yr") + "-" + String.format("%02d", rs.getInt("mon"));
-                    int count = rs.getInt("count");
-                    if (map.containsKey(key)) {
-                        map.put(key, count);
-                    }
+                    counts.add(rs.getInt("total"));
                 }
             }
-        }
-
-        for (int i = months - 1; i >= 0; i--) {
-            java.time.LocalDate month = today.minusMonths(i);
-            counts.add(map.get(month.format(keyFormatter)));
         }
         return counts;
     }
 
-    public List<String> getLastMonthsLabels(int months) {
+    public List<String> getLastMonthsLabels(Connection conn, int months) throws SQLException {
         List<String> labels = new ArrayList<>();
-        java.time.LocalDate today = java.time.LocalDate.now();
-        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("MMM yyyy");
-        for (int i = months - 1; i >= 0; i--) {
-            labels.add(today.minusMonths(i).format(formatter));
+
+        String sql = "SELECT COUNT(*) AS total, DATE_FORMAT(created_at, '%b %Y') AS month_label " +
+                "FROM customer " +
+                "WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL ? MONTH) " +
+                "GROUP BY YEAR(created_at), MONTH(created_at) " +
+                "ORDER BY YEAR(created_at), MONTH(created_at)";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, months);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    labels.add(rs.getString("month_label"));
+                }
+            }
         }
         return labels;
     }
+
 }
