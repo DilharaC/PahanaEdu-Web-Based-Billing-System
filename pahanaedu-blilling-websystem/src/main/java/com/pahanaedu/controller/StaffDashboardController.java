@@ -27,7 +27,7 @@ public class StaffDashboardController extends HttpServlet {
     public void init() throws ServletException {
         productService = ProductService.getInstance();
         customerService = CustomerService.getInstance();
-        billDAO = BillDAO.getInstance();
+        billDAO = new BillDAO();
     }
 
     @Override

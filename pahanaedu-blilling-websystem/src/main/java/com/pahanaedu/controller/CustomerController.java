@@ -55,7 +55,7 @@ public class CustomerController extends HttpServlet {
         } catch (SQLException e) {
             throw new ServletException(e);
         }
-        
+ 
     }
 
     @Override
@@ -74,7 +74,7 @@ public class CustomerController extends HttpServlet {
         } catch (SQLException e) {
             throw new ServletException(e);
         }
-        
+   
     }
 
     private void listCustomers(HttpServletRequest request, HttpServletResponse response) throws SQLException, ServletException, IOException {

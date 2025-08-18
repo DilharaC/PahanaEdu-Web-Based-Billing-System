@@ -12,11 +12,11 @@ public class AuditLogService {
     private AuditLogDAO dao;
 
     private AuditLogService() {
-        // Use the Singleton instance of DAO
-        dao = AuditLogDAO.getInstance();
+        // ✅ Create a normal DAO instance (not Singleton)
+        dao = new AuditLogDAO();
     }
 
-    // Double-checked locking for thread-safe singleton
+    // ✅ Thread-safe Singleton for Service layer (this can stay)
     public static AuditLogService getInstance() {
         if (instance == null) {
             synchronized (AuditLogService.class) {
@@ -28,7 +28,7 @@ public class AuditLogService {
         return instance;
     }
 
-    // Log action using singleton connection from DBConnectionFactory
+    // Add a log entry
     public void logAction(AuditLog log) throws SQLException {
         try (Connection conn = DBConnectionFactory.getConnection()) {
             dao.addAuditLog(log, conn);

@@ -4,6 +4,7 @@ import com.pahanaedu.dao.*;
 import com.pahanaedu.model.*;
 import com.pahanaedu.service.AuditLogService;
 import com.pahanaedu.service.BillService;
+import com.pahanaedu.service.CustomerService;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebServlet;
@@ -16,11 +17,11 @@ import java.util.List;
 @WebServlet("/Bill")
 public class BillController extends HttpServlet {
 
-    private BillService billService = BillService.getInstance(); // Singleton
-    private BillDAO billDAO = BillDAO.getInstance();             // Singleton
-    private CustomerDAO customerDAO = CustomerDAO.getInstance(); // Singleton
-    private ProductDAO productDAO = ProductDAO.getInstance();    // Singleton
 
+    private final BillService billService = BillService.getInstance(); // ✅ Singleton
+    private final BillDAO billDAO = new BillDAO();                     // ✅ plain object
+    private final CustomerDAO customerDAO = new CustomerDAO();         // ✅ plain object
+    private final ProductDAO productDAO = new ProductDAO();            // ✅ plain object
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
@@ -82,7 +83,7 @@ public class BillController extends HttpServlet {
             conn.setAutoCommit(false); // start transaction
 
             int customerId = Integer.parseInt(request.getParameter("customerId").trim());
-            Customer customer = customerDAO.getCustomerById(customerId, conn);
+            Customer customer = CustomerService.getInstance().getCustomerById(customerId);
             if (customer == null) throw new ServletException("Customer not found.");
 
             Integer staffId = (Integer) request.getSession().getAttribute("staffId");

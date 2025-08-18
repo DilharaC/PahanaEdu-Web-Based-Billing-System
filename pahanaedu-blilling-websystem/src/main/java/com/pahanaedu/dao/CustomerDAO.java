@@ -8,18 +8,8 @@ import java.util.List;
 
 public class CustomerDAO {
 
-    private static CustomerDAO instance;
-
-    private CustomerDAO() { }
-
-    public static CustomerDAO getInstance() {
-        if (instance == null) {
-            synchronized (CustomerDAO.class) {
-                if (instance == null) instance = new CustomerDAO();
-            }
-        }
-        return instance;
-    }
+    // ✅ No Singleton instance anymore
+    public CustomerDAO() {}
 
     public int addCustomer(Customer customer, Connection conn) throws SQLException {
         String query = "INSERT INTO customer (name, email, phone, address, active, created_at) " +

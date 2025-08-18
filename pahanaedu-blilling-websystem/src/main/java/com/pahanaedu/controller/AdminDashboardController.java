@@ -11,6 +11,7 @@ import javax.servlet.http.*;
 
 import com.pahanaedu.dao.AuditLogDAO;
 import com.pahanaedu.dao.BillDAO;
+import com.pahanaedu.dao.CustomerDAO;
 import com.pahanaedu.model.AuditLog;
 import com.pahanaedu.model.Bill;
 import com.pahanaedu.service.CustomerService;
@@ -24,15 +25,15 @@ public class AdminDashboardController extends HttpServlet {
     private CustomerService customerService;
     private AuditLogDAO auditLogDAO;
     private BillDAO billDAO;
-
+    private CustomerDAO customerDAO;  
+    
     @Override
     public void init() throws ServletException {
         productService = ProductService.getInstance();
         customerService = CustomerService.getInstance();
-        auditLogDAO = AuditLogDAO.getInstance(); // Singleton
-        billDAO = BillDAO.getInstance();         // Singleton (if refactored)
+        auditLogDAO = new AuditLogDAO();
+        billDAO = new BillDAO();   // ✅ just new, since no Singleton
     }
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {

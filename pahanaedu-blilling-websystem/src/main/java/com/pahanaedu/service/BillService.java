@@ -10,33 +10,37 @@ import java.util.List;
 
 public class BillService {
 
+    private static BillService instance;
     private final BillDAO billDAO;
     private final ProductDAO productDAO;
-    private static BillService instance;
 
     private BillService() {
-        billDAO = BillDAO.getInstance();
-        productDAO = ProductDAO.getInstance();
+        this.billDAO = new BillDAO();
+        this.productDAO = new ProductDAO();
     }
 
     public static BillService getInstance() {
         if (instance == null) {
             synchronized (BillService.class) {
-                if (instance == null) instance = new BillService();
+                if (instance == null) {
+                    instance = new BillService();
+                }
             }
         }
         return instance;
     }
 
     public Bill createBill(Customer customer, List<BillItem> items, int staffId, Connection conn) throws Exception {
-        if (items == null || items.isEmpty())
+        if (items == null || items.isEmpty()) {
             throw new Exception("No items to create bill");
+        }
 
         double total = 0;
         for (BillItem item : items) {
             Product p = item.getProduct();
-            if (p.getQuantity() < item.getQuantity())
+            if (p.getQuantity() < item.getQuantity()) {
                 throw new Exception("Insufficient stock for product: " + p.getName());
+            }
             total += item.getTotal();
         }
 

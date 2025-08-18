@@ -8,22 +8,9 @@ import java.util.List;
 
 public class ProductDAO {
 
-    // Singleton instance
-    private static ProductDAO instance;
-
-    private ProductDAO() {
-        // private constructor to prevent instantiation
-    }
-
-    public static ProductDAO getInstance() {
-        if (instance == null) {
-            synchronized (ProductDAO.class) {
-                if (instance == null) {
-                    instance = new ProductDAO();
-                }
-            }
-        }
-        return instance;
+    // ✅ Removed Singleton implementation
+    public ProductDAO() {
+        // public constructor
     }
 
     public void addProduct(Product product, Connection conn) throws SQLException {

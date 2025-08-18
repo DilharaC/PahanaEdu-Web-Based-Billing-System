@@ -14,8 +14,9 @@ public class ProductService {
     private ProductDAO productDAO;
 
     private ProductService() {
-        this.productDAO = ProductDAO.getInstance(); // Use singleton DAO
+        this.productDAO = new ProductDAO(); // ✅ FIXED
     }
+
 
     public static ProductService getInstance() {
         if (instance == null) {
