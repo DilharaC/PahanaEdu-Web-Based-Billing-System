@@ -9,12 +9,12 @@ import com.pahanaedu.dao.ProductDAO;
 import com.pahanaedu.model.Product;
 
 public class ProductService {
-	 
+     
     private static ProductService instance;
     private ProductDAO productDAO;
 
     private ProductService() {
-        this.productDAO = new ProductDAO();
+        this.productDAO = ProductDAO.getInstance(); // Use singleton DAO
     }
 
     public static ProductService getInstance() {
@@ -30,7 +30,13 @@ public class ProductService {
 
     public void addProduct(Product product) throws SQLException {
         try (Connection conn = DBConnectionFactory.getConnection()) {
-            productDAO.addProduct(product, conn); // the product object now has the generated ID
+            productDAO.addProduct(product, conn);
+        }
+    }
+
+    public int addProductAndGetId(Product product) throws SQLException {
+        try (Connection conn = DBConnectionFactory.getConnection()) {
+            return productDAO.addProductAndGetId(product, conn);
         }
     }
 
@@ -82,13 +88,7 @@ public class ProductService {
         }
     }
 
-    public int getTotalProducts() throws SQLException {
-        return productDAO.countProducts();
-    }
-    public int addProductAndGetId(Product product) throws SQLException {
-        try (Connection conn = DBConnectionFactory.getConnection()) {
-            return productDAO.addProductAndGetId(product, conn);
-        }
+    public int getTotalProducts(Connection conn) throws SQLException {
+        return productDAO.countProducts(conn);
     }
 }
-    

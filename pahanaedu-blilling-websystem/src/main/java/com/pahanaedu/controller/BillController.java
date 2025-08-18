@@ -4,8 +4,6 @@ import com.pahanaedu.dao.*;
 import com.pahanaedu.model.*;
 import com.pahanaedu.service.AuditLogService;
 import com.pahanaedu.service.BillService;
-import com.pahanaedu.model.ProductSales;
-
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebServlet;
@@ -14,60 +12,56 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @WebServlet("/Bill")
 public class BillController extends HttpServlet {
 
-    private BillService billService = new BillService();
-    private BillDAO billDAO = new BillDAO();
-    private CustomerDAO customerDAO = new CustomerDAO();
-    private ProductDAO productDAO = new ProductDAO();
+    private BillService billService = BillService.getInstance(); // Singleton
+    private BillDAO billDAO = BillDAO.getInstance();             // Singleton
+    private CustomerDAO customerDAO = CustomerDAO.getInstance(); // Singleton
+    private ProductDAO productDAO = ProductDAO.getInstance();    // Singleton
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
         String action = request.getParameter("action");
-        if (action == null) action = "create";  // default to 'create' page
+        if (action == null) action = "create";
 
         switch (action) {
             case "create":
             case "form":
                 showBillForm(request, response);
                 break;
-
             case "view":
-                String billIdStr = request.getParameter("billId");
-                if (billIdStr != null) {
-                    viewBillDetails(request, response); 
+                if (request.getParameter("billId") != null) {
+                    viewBillDetails(request, response);
                 } else {
-                    viewBills(request, response); 
+                    viewBills(request, response);
                 }
                 break;
-
             case "topProductsData":
                 sendTopProductsData(request, response);
                 break;
-            
             default:
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Unknown action");
         }
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
         String action = request.getParameter("action");
         if (action == null) action = "save";
 
-        switch (action) {
-            case "save":
-                saveBill(request, response);
-                break;
-            default:
-                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Unknown action");
+        if ("save".equals(action)) {
+            saveBill(request, response);
+        } else {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Unknown action");
         }
     }
 
-    private void showBillForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    private void showBillForm(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
         try (Connection conn = DBConnectionFactory.getConnection()) {
             request.setAttribute("customers", customerDAO.getAllCustomers(conn));
             request.setAttribute("products", productDAO.getAllProducts(conn));
@@ -77,94 +71,76 @@ public class BillController extends HttpServlet {
         request.getRequestDispatcher("/WEB-INF/view/bill_form.jsp").forward(request, response);
     }
 
-    private void saveBill(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+    private void saveBill(HttpServletRequest request, HttpServletResponse response) 
+            throws IOException, ServletException {
+
         List<BillItem> items = new ArrayList<>();
+        Connection conn = null;
 
-        try (Connection conn = DBConnectionFactory.getConnection()) {
-            // Get customer ID from form
-            String customerIdStr = request.getParameter("customerId");
-            if (customerIdStr == null || customerIdStr.trim().isEmpty()) {
-                throw new ServletException("Customer ID is missing.");
-            }
-            int customerId = Integer.parseInt(customerIdStr.trim());
+        try {
+            conn = DBConnectionFactory.getConnection();
+            conn.setAutoCommit(false); // start transaction
+
+            int customerId = Integer.parseInt(request.getParameter("customerId").trim());
             Customer customer = customerDAO.getCustomerById(customerId, conn);
-            if (customer == null) {
-                throw new ServletException("Customer not found with ID: " + customerId);
-            }
+            if (customer == null) throw new ServletException("Customer not found.");
 
-            // --- Get staff ID from session ---
             Integer staffId = (Integer) request.getSession().getAttribute("staffId");
-            if (staffId == null) {
-                throw new ServletException("No staff is logged in.");
-            }
+            if (staffId == null) throw new ServletException("No staff logged in.");
 
-            // Get bill items from form
             String[] productIds = request.getParameterValues("productId");
             String[] quantities = request.getParameterValues("quantity");
-            if (productIds == null || quantities == null || productIds.length != quantities.length) {
-                throw new ServletException("Product or quantity data is invalid.");
-            }
+
+            if (productIds == null || quantities == null || productIds.length != quantities.length)
+                throw new ServletException("Product or quantity data invalid.");
 
             for (int i = 0; i < productIds.length; i++) {
-                String pidStr = productIds[i];
-                String qtyStr = quantities[i];
-
-                if (pidStr == null || pidStr.trim().isEmpty()) continue;
-                if (qtyStr == null || qtyStr.trim().isEmpty()) continue;
-
-                int pid = Integer.parseInt(pidStr.trim());
-                int qty = Integer.parseInt(qtyStr.trim());
+                int pid = Integer.parseInt(productIds[i].trim());
+                int qty = Integer.parseInt(quantities[i].trim());
                 if (qty <= 0) continue;
 
                 Product product = productDAO.getProductById(pid, conn);
-                if (product == null) {
-                    throw new ServletException("Product not found with ID: " + pid);
-                }
+                if (product == null) throw new ServletException("Product not found: " + pid);
 
                 items.add(new BillItem(product, qty, product.getPrice()));
             }
 
-            if (items.isEmpty()) {
-                throw new ServletException("No valid products with quantity to create a bill.");
-            }
+            if (items.isEmpty()) throw new ServletException("No valid products to create bill.");
 
-            // Create bill
-            int billId = billService.createBill(customer, items, staffId, conn);
-            if (billId <= 0) {
-                throw new ServletException("Failed to create bill");
-            }
+            // ✅ Create bill and get full bill (with items) in one step
+            Bill fullBill = billService.createBill(customer, items, staffId, conn);
 
-            // --- Audit log for bill creation ---
+            // Audit log
             AuditLog log = new AuditLog();
             log.setAction("Create Bill");
             log.setPerformedBy("Staff ID: " + staffId);
             log.setTargetEntity("Bill");
-            log.setTargetId(billId);
+            log.setTargetId(fullBill.getBillId());
 
-            StringBuilder details = new StringBuilder("Created bill for customer: " + customer.getName() + " (ID: " + customerId + ")");
+            StringBuilder details = new StringBuilder("Created bill for customer: " + customer.getName());
             details.append(", Items: ");
             for (BillItem item : items) {
                 details.append(item.getProduct().getName())
-                       .append(" x").append(item.getQuantity())
-                       .append(", ");
+                       .append(" x").append(item.getQuantity()).append(", ");
             }
             if (details.length() > 2) details.setLength(details.length() - 2);
-
             log.setDetails(details.toString());
             AuditLogService.getInstance().logAction(log);
-            // --- End of audit log ---
 
-            Bill fullBill = billDAO.getBillById(billId, conn);
             request.setAttribute("bill", fullBill);
             request.getRequestDispatcher("/WEB-INF/view/bill_success.jsp").forward(request, response);
 
         } catch (Exception e) {
+            try { if (conn != null) conn.rollback(); } catch (Exception ex) { ex.printStackTrace(); }
             e.printStackTrace();
             throw new ServletException("Error creating bill: " + e.getMessage(), e);
+        } finally {
+            try { if (conn != null) conn.close(); } catch (Exception ex) { ex.printStackTrace(); }
         }
     }
 
-    private void viewBills(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    private void viewBills(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
         try (Connection conn = DBConnectionFactory.getConnection()) {
             request.setAttribute("bills", billDAO.getAllBills(conn));
         } catch (Exception e) {
@@ -173,15 +149,10 @@ public class BillController extends HttpServlet {
         request.getRequestDispatcher("/WEB-INF/view/allTransaction.jsp").forward(request, response);
     }
 
-    private void viewBillDetails(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String billIdStr = request.getParameter("billId");
-        if (billIdStr == null) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bill ID is required");
-            return;
-        }
-
+    private void viewBillDetails(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        int billId = Integer.parseInt(request.getParameter("billId").trim());
         try (Connection conn = DBConnectionFactory.getConnection()) {
-            int billId = Integer.parseInt(billIdStr);
             Bill bill = billDAO.getBillById(billId, conn);
             if (bill == null) {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Bill not found");
@@ -194,15 +165,17 @@ public class BillController extends HttpServlet {
             throw new ServletException("Error retrieving bill details", e);
         }
     }
-    private void sendTopProductsData(HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+    private void sendTopProductsData(HttpServletRequest request, HttpServletResponse response) 
+            throws IOException {
         response.setContentType("application/json");
         try (Connection conn = DBConnectionFactory.getConnection()) {
             List<ProductSales> topProducts = billDAO.getTopSellingProducts(conn, 5);
             StringBuilder json = new StringBuilder("[");
             for (int i = 0; i < topProducts.size(); i++) {
                 ProductSales ps = topProducts.get(i);
-                json.append("{\"name\":\"").append(ps.getProductName()).append("\",");
-                json.append("\"sold\":").append(ps.getQuantitySold()).append("}");
+                json.append("{\"name\":\"").append(ps.getProductName()).append("\",")
+                    .append("\"sold\":").append(ps.getQuantitySold()).append("}");
                 if (i < topProducts.size() - 1) json.append(",");
             }
             json.append("]");

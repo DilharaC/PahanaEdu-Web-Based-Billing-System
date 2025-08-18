@@ -10,6 +10,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 
 import com.pahanaedu.dao.BillDAO;
+import com.pahanaedu.dao.DBConnectionFactory;
 import com.pahanaedu.model.Bill;
 import com.pahanaedu.service.CustomerService;
 import com.pahanaedu.service.ProductService;
@@ -20,15 +21,17 @@ public class StaffDashboardController extends HttpServlet {
 
     private ProductService productService;
     private CustomerService customerService;
+    private BillDAO billDAO;
 
     @Override
     public void init() throws ServletException {
         productService = ProductService.getInstance();
         customerService = CustomerService.getInstance();
+        billDAO = BillDAO.getInstance();
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String action = request.getParameter("action");
 
@@ -44,36 +47,42 @@ public class StaffDashboardController extends HttpServlet {
             throw new ServletException(e);
         }
     }
-
-    private void showDashboard(HttpServletRequest request, HttpServletResponse response) 
+    private void showDashboard(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
 
-        int totalProducts = productService.getTotalProducts();
-        int totalCustomers = customerService.getTotalCustomers();
+        try (Connection conn = DBConnectionFactory.getConnection()) {
 
-        request.setAttribute("totalProducts", totalProducts);
-        request.setAttribute("totalCustomers", totalCustomers);
-        request.setAttribute("billsToday", 0);
+            int totalProducts = productService.getTotalProducts(conn);
+            int totalCustomers = customerService.getTotalCustomers(conn);
 
-        try (Connection conn = com.pahanaedu.dao.DBConnection.getConnection()) {
-            BillDAO billDAO = new BillDAO();
+//            int billsToday = billDAO.getTodaysBillCount(conn); // implement this in BillDAO with Connection
             List<Bill> last5Bills = billDAO.getLast5Bills(conn);
-            request.setAttribute("last5Bills", last5Bills);
-        }
 
-        request.getRequestDispatcher("WEB-INF/view/staffDashboard.jsp").forward(request, response);
+            request.setAttribute("totalProducts", totalProducts);
+            request.setAttribute("totalCustomers", totalCustomers);
+//            request.setAttribute("billsToday", billsToday);
+            request.setAttribute("last5Bills", last5Bills);
+
+            request.getRequestDispatcher("WEB-INF/view/staffDashboard.jsp").forward(request, response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ServletException("Error loading dashboard: " + e.getMessage(), e);
+        }
     }
 
-    private void showAllTransactions(HttpServletRequest request, HttpServletResponse response) 
+    private void showAllTransactions(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
-        try (Connection conn = com.pahanaedu.dao.DBConnection.getConnection()) {
-            BillDAO billDAO = new BillDAO();
+
+        try (Connection conn = DBConnectionFactory.getConnection()) {
+
             List<Bill> allBills = billDAO.getAllBills(conn);
             request.setAttribute("allBills", allBills);
+
+            request.getRequestDispatcher("WEB-INF/view/allTransactions.jsp").forward(request, response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ServletException("Error loading transactions: " + e.getMessage(), e);
         }
-
-        request.getRequestDispatcher("WEB-INF/view/allTransactions.jsp").forward(request, response);
-    }
-}
-
-  
+    }}

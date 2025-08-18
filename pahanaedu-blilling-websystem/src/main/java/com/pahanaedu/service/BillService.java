@@ -9,11 +9,36 @@ import java.util.Date;
 import java.util.List;
 
 public class BillService {
-    private BillDAO billDAO = new BillDAO();
-    private ProductDAO productDAO = new ProductDAO();
 
-    public int createBill(Customer customer, List<BillItem> items, int staffId, Connection conn) throws Exception {
-        double total = items.stream().mapToDouble(BillItem::getTotal).sum();
+    private final BillDAO billDAO;
+    private final ProductDAO productDAO;
+    private static BillService instance;
+
+    private BillService() {
+        billDAO = BillDAO.getInstance();
+        productDAO = ProductDAO.getInstance();
+    }
+
+    public static BillService getInstance() {
+        if (instance == null) {
+            synchronized (BillService.class) {
+                if (instance == null) instance = new BillService();
+            }
+        }
+        return instance;
+    }
+
+    public Bill createBill(Customer customer, List<BillItem> items, int staffId, Connection conn) throws Exception {
+        if (items == null || items.isEmpty())
+            throw new Exception("No items to create bill");
+
+        double total = 0;
+        for (BillItem item : items) {
+            Product p = item.getProduct();
+            if (p.getQuantity() < item.getQuantity())
+                throw new Exception("Insufficient stock for product: " + p.getName());
+            total += item.getTotal();
+        }
 
         Bill bill = new Bill();
         bill.setCustomer(customer);
@@ -22,14 +47,28 @@ public class BillService {
         bill.setTotalAmount(total);
         bill.setItems(items);
 
-        // Reduce stock quantity
-        for (BillItem item : items) {
-            Product p = item.getProduct();
-            p.setQuantity(p.getQuantity() - item.getQuantity());
-            productDAO.updateProduct(p, conn);
-        }
+        boolean previousAutoCommit = conn.getAutoCommit();
+        conn.setAutoCommit(false);
+        try {
+            // Reduce stock
+            for (BillItem item : items) {
+                Product p = item.getProduct();
+                p.setQuantity(p.getQuantity() - item.getQuantity());
+                productDAO.updateProduct(p, conn);
+            }
 
-        return billDAO.createBill(bill, conn);
+            // Create bill and get full details BEFORE commit
+            int billId = billDAO.createBill(bill, conn);
+            Bill fullBill = billDAO.getBillById(billId, conn);
+
+            conn.commit();
+            return fullBill;
+
+        } catch (Exception e) {
+            conn.rollback();
+            throw e;
+        } finally {
+            conn.setAutoCommit(previousAutoCommit);
+        }
     }
-    
 }

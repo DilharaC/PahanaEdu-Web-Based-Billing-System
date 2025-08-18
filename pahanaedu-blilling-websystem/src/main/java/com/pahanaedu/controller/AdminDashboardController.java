@@ -22,18 +22,21 @@ public class AdminDashboardController extends HttpServlet {
 
     private ProductService productService;
     private CustomerService customerService;
-    private AuditLogDAO auditLogDAO = new AuditLogDAO();
+    private AuditLogDAO auditLogDAO;
+    private BillDAO billDAO;
+
     @Override
     public void init() throws ServletException {
         productService = ProductService.getInstance();
         customerService = CustomerService.getInstance();
+        auditLogDAO = AuditLogDAO.getInstance(); // Singleton
+        billDAO = BillDAO.getInstance();         // Singleton (if refactored)
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        // Check if logged in and admin
         if (session == null || session.getAttribute("staff") == null || 
             !"admin".equalsIgnoreCase(String.valueOf(session.getAttribute("role")))) {
             response.sendRedirect(request.getContextPath() + "/StaffLogin.jsp");
@@ -57,24 +60,17 @@ public class AdminDashboardController extends HttpServlet {
         }
     }
 
-    // New method to handle audit logs
     private void showAuditLog(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("staff") == null) {
-            response.sendRedirect(request.getContextPath() + "/StaffLogin.jsp");
-            return;
-        }
-
-        String search = request.getParameter("search"); // search query
-        String category = request.getParameter("category"); // category filter
+        String search = request.getParameter("search");
+        String category = request.getParameter("category");
 
         try (Connection conn = com.pahanaedu.dao.DBConnection.getConnection()) {
             List<AuditLog> auditLogs;
 
             if ((search != null && !search.trim().isEmpty()) || (category != null && !category.isEmpty())) {
-                auditLogs = auditLogDAO.searchLogs(conn, search, category); // updated DAO method
+                auditLogs = auditLogDAO.searchLogs(conn, search, category);
             } else {
                 auditLogs = auditLogDAO.getAllLogs(conn);
             }
@@ -92,26 +88,28 @@ public class AdminDashboardController extends HttpServlet {
     private void showDashboard(HttpServletRequest request, HttpServletResponse response) 
             throws SQLException, ServletException, IOException {
 
-        int totalProducts = productService.getTotalProducts();
-        int totalCustomers = customerService.getTotalCustomers();
-
-        request.setAttribute("totalProducts", totalProducts);
-        request.setAttribute("totalCustomers", totalCustomers);
-        request.setAttribute("billsToday", 0); // TODO: You can calculate today's bills if needed
-
         try (Connection conn = com.pahanaedu.dao.DBConnection.getConnection()) {
-            BillDAO billDAO = new BillDAO();
-            List<Bill> last5Bills = billDAO.getLast5Bills(conn);
-            request.setAttribute("last5Bills", last5Bills);
-        }
 
-        request.getRequestDispatcher("/WEB-INF/view/adminDashboard.jsp").forward(request, response);
+            // Use the same connection for all services
+            int totalProducts = productService.getTotalProducts(conn);
+            int totalCustomers = customerService.getTotalCustomers(conn);
+            List<Bill> last5Bills = billDAO.getLast5Bills(conn);
+
+            request.setAttribute("totalProducts", totalProducts);
+            request.setAttribute("totalCustomers", totalCustomers);
+            request.setAttribute("billsToday", 0); // replace with actual if implemented
+            request.setAttribute("last5Bills", last5Bills);
+
+            request.getRequestDispatcher("/WEB-INF/view/adminDashboard.jsp").forward(request, response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ServletException("Error loading dashboard: " + e.getMessage(), e);
+        }
     }
 
     private void showAllTransactions(HttpServletRequest request, HttpServletResponse response) 
             throws SQLException, ServletException, IOException {
         try (Connection conn = com.pahanaedu.dao.DBConnection.getConnection()) {
-            BillDAO billDAO = new BillDAO();
             List<Bill> allBills = billDAO.getAllBills(conn);
             request.setAttribute("allBills", allBills);
         }

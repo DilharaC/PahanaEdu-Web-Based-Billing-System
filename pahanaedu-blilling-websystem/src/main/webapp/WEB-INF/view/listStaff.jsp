@@ -87,59 +87,66 @@ body.dark-mode table tr:hover { background-color:#2e7d32; }
             <a href="Staff?action=add" class="add-btn"><i class='bx bx-plus'></i> Add Staff</a>
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th><i class='bx bx-hash'></i> ID</th>
-                    <th><i class='bx bxs-user'></i> Name</th>
-                    <th><i class='bx bx-envelope'></i> Email</th>
-                    <th><i class='bx bx-phone'></i> Phone</th>
-                    <th><i class='bx bx-briefcase'></i> Job Title</th>
-                    <th><i class='bx bx-cog'></i> Role</th>
-                    <th><i class='bx bx-check-circle'></i> Status</th>
-                    <th><i class='bx bx-cog'></i> Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <c:forEach var="staff" items="${staffList}">
-                    <tr>
-                        <td>${staff.staffId}</td>
-                        <td>${staff.fullName}</td>
-                        <td>${staff.email}</td>
-                        <td>${staff.phone}</td>
-                        <td>${staff.jobTitle}</td>
-                        <td>${staff.role}</td>
-                        <td>
-                            <c:choose>
-                                <c:when test="${staff.status == 'active'}">
-                                    <i class='bx bx-check-circle' style="color:green;"></i> Active
-                                </c:when>
-                                <c:otherwise>
-                                    <i class='bx bx-x-circle' style="color:red;"></i> Inactive
-                                </c:otherwise>
-                            </c:choose>
-                        </td>
-                        <td>
-                            <form action="Staff" method="get" style="display:inline;">
-                                <input type="hidden" name="action" value="edit" />
-                                <input type="hidden" name="staffId" value="${staff.staffId}" />
-                                <button type="submit" class="btn-edit"><i class='bx bx-edit'></i> Edit</button>
-                            </form>
-                            <form action="Staff" method="post" style="display:inline;" onsubmit="return confirm('Delete this staff?');">
-                                <input type="hidden" name="action" value="delete" />
-                                <input type="hidden" name="staffId" value="${staff.staffId}" />
-                                <button type="submit" class="btn-delete"><i class='bx bx-trash'></i> Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                </c:forEach>
-                <c:if test="${empty staffList}">
-                    <tr>
-                        <td colspan="8" style="text-align:center; font-style:italic; color:#888;">No staff found.</td>
-                    </tr>
-                </c:if>
-            </tbody>
-        </table>
+    <table>
+    <thead>
+        <tr>
+            <th><i class='bx bx-hash'></i> ID</th>
+            <th><i class='bx bx-user'></i> Username</th>
+            <th><i class='bx bxs-user'></i> Name</th>
+            <th><i class='bx bx-envelope'></i> Email</th>
+            <th><i class='bx bx-phone'></i> Phone</th>
+            <th><i class='bx bx-briefcase'></i> Job Title</th>
+            <th><i class='bx bx-cog'></i> Role</th>
+            <th><i class='bx bx-check-circle'></i> Status</th>
+          
+            <th><i class='bx bx-cog'></i> Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <c:forEach var="staff" items="${staffList}">
+            <tr>
+                <td>${staff.staffId}</td>
+                <td>${staff.username}</td>
+                <td>${staff.fullName}</td>
+                <td>${staff.email}</td>
+                <td>${staff.phone}</td>
+                <td>${staff.jobTitle}</td>
+                <td>${staff.role}</td>
+                <td>
+                    <c:choose>
+                        <c:when test="${staff.status == 'active'}">
+                            <i class='bx bx-check-circle' style="color:green;"></i> Active
+                        </c:when>
+                        <c:otherwise>
+                            <i class='bx bx-x-circle' style="color:red;"></i> Inactive
+                        </c:otherwise>
+                    </c:choose>
+                </td>
+                
+                <td>
+                    <!-- Edit -->
+                    <form action="Staff" method="get" style="display:inline;">
+                        <input type="hidden" name="action" value="edit" />
+                        <input type="hidden" name="staffId" value="${staff.staffId}" />
+                        <button type="submit" class="btn-edit"><i class='bx bx-edit'></i> Edit</button>
+                    </form>
+
+                    <!-- Delete -->
+                    <form action="Staff" method="post" style="display:inline;" onsubmit="return confirm('Delete this staff?');">
+                        <input type="hidden" name="action" value="delete" />
+                        <input type="hidden" name="staffId" value="${staff.staffId}" />
+                        <button type="submit" class="btn-delete"><i class='bx bx-trash'></i> Delete</button>
+                    </form>
+                </td>
+            </tr>
+        </c:forEach>
+        <c:if test="${empty staffList}">
+            <tr>
+                <td colspan="10" style="text-align:center; font-style:italic; color:#888;">No staff found.</td>
+            </tr>
+        </c:if>
+    </tbody>
+</table>
     </div>
 </div>
 

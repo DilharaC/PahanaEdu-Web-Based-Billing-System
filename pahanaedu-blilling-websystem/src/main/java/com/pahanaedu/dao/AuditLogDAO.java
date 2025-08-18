@@ -12,6 +12,21 @@ import com.pahanaedu.model.AuditLog;
 
 public class AuditLogDAO {
 
+    // Single instance of DAO
+    private static AuditLogDAO instance;
+
+    // Private constructor prevents instantiation
+    private AuditLogDAO() {}
+
+    // Public method to get the single instance
+    public static synchronized AuditLogDAO getInstance() {
+        if (instance == null) {
+            instance = new AuditLogDAO();
+        }
+        return instance;
+    }
+
+    // Add a new audit log
     public void addAuditLog(AuditLog log, Connection conn) throws SQLException {
         String sql = "INSERT INTO audit_log (action, performed_by, target_entity, target_id, details, timestamp) " +
                      "VALUES (?, ?, ?, ?, ?, ?)";
@@ -21,37 +36,35 @@ public class AuditLogDAO {
             ps.setString(3, log.getTargetEntity());
             ps.setInt(4, log.getTargetId());
             ps.setString(5, log.getDetails());
-            ps.setObject(6, log.getTimestamp());
+            ps.setTimestamp(6, Timestamp.valueOf(log.getTimestamp())); // safer conversion
             ps.executeUpdate();
         }
     }
+
+    // Get all audit logs
     public List<AuditLog> getAllLogs(Connection conn) throws SQLException {
         List<AuditLog> logs = new ArrayList<>();
-        String sql = "SELECT log_id, action, performed_by, target_entity, target_id, details, timestamp FROM audit_log";
+        String sql = "SELECT log_id, action, performed_by, target_entity, target_id, details, timestamp " +
+                     "FROM audit_log ORDER BY timestamp DESC";
 
         try (PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                AuditLog log = new AuditLog();
-                log.setId(rs.getInt("log_id")); // match DB column
-                log.setAction(rs.getString("action"));
-                log.setPerformedBy(rs.getString("performed_by"));
-                log.setTargetEntity(rs.getString("target_entity"));
-                log.setTargetId(rs.getInt("target_id"));
-                log.setDetails(rs.getString("details"));
-                log.setTimestamp(rs.getTimestamp("timestamp").toLocalDateTime()); // convert SQL timestamp to LocalDateTime
-                logs.add(log);
+                logs.add(mapRowToAuditLog(rs));
             }
         }
-
         return logs;
     }
+
+    // Search logs
     public List<AuditLog> searchLogs(Connection conn, String search, String category) throws SQLException {
-        StringBuilder sql = new StringBuilder("SELECT log_id, action, performed_by, target_entity, target_id, details, timestamp FROM audit_log WHERE 1=1 ");
+        StringBuilder sql = new StringBuilder(
+            "SELECT log_id, action, performed_by, target_entity, target_id, details, timestamp FROM audit_log WHERE 1=1 "
+        );
 
         if (search != null && !search.trim().isEmpty()) {
-            sql.append("AND (action LIKE ? OR performed_by LIKE ?) ");
+            sql.append("AND (action LIKE ? OR performed_by LIKE ? OR details LIKE ?) ");
         }
 
         if (category != null && !category.trim().isEmpty()) {
@@ -67,6 +80,7 @@ public class AuditLogDAO {
                 String likeSearch = "%" + search + "%";
                 ps.setString(index++, likeSearch);
                 ps.setString(index++, likeSearch);
+                ps.setString(index++, likeSearch); // include details in search
             }
 
             if (category != null && !category.trim().isEmpty()) {
@@ -82,9 +96,11 @@ public class AuditLogDAO {
             }
         }
     }
+
+    // Map ResultSet row to AuditLog object
     private AuditLog mapRowToAuditLog(ResultSet rs) throws SQLException {
         AuditLog log = new AuditLog();
-        log.setId(rs.getInt("log_id"));                 // <-- must match DB
+        log.setId(rs.getInt("log_id"));
         log.setAction(rs.getString("action"));
         log.setPerformedBy(rs.getString("performed_by"));
         log.setTargetEntity(rs.getString("target_entity"));

@@ -9,7 +9,19 @@ import java.util.List;
 
 public class BillDAO {
 
-    
+    private static BillDAO instance;
+
+    private BillDAO() {}
+
+    public static BillDAO getInstance() {
+        if (instance == null) {
+            synchronized (BillDAO.class) {
+                if (instance == null) instance = new BillDAO();
+            }
+        }
+        return instance;
+    }
+
     public int createBill(Bill bill, Connection conn) throws SQLException {
         String billQuery = "INSERT INTO bill (customer_id, staff_id, bill_date, total_amount) VALUES (?, ?, ?, ?)";
         try (PreparedStatement billPs = conn.prepareStatement(billQuery, Statement.RETURN_GENERATED_KEYS)) {
@@ -35,13 +47,11 @@ public class BillDAO {
                         itemPs.executeBatch();
                     }
                     return billId;
-                }
+                } else throw new SQLException("Failed to retrieve generated bill ID");
             }
         }
-        return 0;
     }
 
-    // Retrieve all bills with basic customer info.
     public List<Bill> getAllBills(Connection conn) throws SQLException {
         List<Bill> bills = new ArrayList<>();
         String sql = "SELECT b.bill_id, b.bill_date, b.total_amount, b.staff_id, " +
@@ -70,8 +80,7 @@ public class BillDAO {
         return bills;
     }
 
-    // Retrieve a bill by ID, including bill items.
-    public Bill getBillById(int billId, Connection conn) throws Exception {
+    public Bill getBillById(int billId, Connection conn) throws SQLException {
         String sql = "SELECT b.bill_id, b.bill_date, b.total_amount, " +
                      "c.customer_id, c.name AS customer_name, c.phone " +
                      "FROM bill b " +
@@ -80,7 +89,6 @@ public class BillDAO {
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, billId);
-
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     Bill bill = new Bill();
@@ -99,7 +107,6 @@ public class BillDAO {
 
                     List<BillItem> items = getBillItemsByBillId(billId, conn);
                     bill.setItems(items);
-
                     return bill;
                 }
             }
@@ -107,8 +114,7 @@ public class BillDAO {
         return null;
     }
 
-    // Retrieve bill items for a given bill.
-    private List<BillItem> getBillItemsByBillId(int billId, Connection conn) throws Exception {
+    private List<BillItem> getBillItemsByBillId(int billId, Connection conn) throws SQLException {
         String sql = "SELECT bi.product_id, bi.quantity, bi.price, p.name AS product_name " +
                      "FROM bill_item bi " +
                      "JOIN product p ON bi.product_id = p.product_id " +
@@ -118,7 +124,6 @@ public class BillDAO {
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, billId);
-
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     Product product = new Product();
@@ -135,53 +140,45 @@ public class BillDAO {
         }
         return items;
     }
+
     public List<Bill> getLast5Bills(Connection conn) throws SQLException {
         List<Bill> bills = new ArrayList<>();
-        
         String sql = "SELECT b.bill_id, b.bill_date, b.total_amount, " +
-                     "c.name AS customer_name, c.phone AS customer_phone, " +
-                     "b.staff_id " +
+                     "c.name AS customer_name, c.phone AS customer_phone, b.staff_id " +
                      "FROM bill b " +
                      "JOIN customer c ON b.customer_id = c.customer_id " +
                      "ORDER BY b.bill_id DESC LIMIT 5";
 
         try (PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
-
             while (rs.next()) {
                 Bill bill = new Bill();
                 bill.setBillId(rs.getInt("bill_id"));
                 bill.setBillDate(rs.getDate("bill_date"));
                 bill.setTotalAmount(rs.getDouble("total_amount"));
 
-                // Customer info
                 Customer customer = new Customer();
                 customer.setName(rs.getString("customer_name"));
                 customer.setPhone(rs.getString("customer_phone"));
                 bill.setCustomer(customer);
 
-                // Staff ID only
                 bill.setStaffId(rs.getInt("staff_id"));
-
                 bills.add(bill);
             }
         }
         return bills;
-    
     }
+
     public List<ProductSales> getTopSellingProducts(Connection conn, int limit) throws SQLException {
         List<ProductSales> topProducts = new ArrayList<>();
-
         String sql = "SELECT p.name AS product_name, SUM(bi.quantity) AS total_sold " +
                      "FROM bill_item bi " +
                      "JOIN product p ON bi.product_id = p.product_id " +
                      "GROUP BY bi.product_id " +
-                     "ORDER BY total_sold DESC " +
-                     "LIMIT ?";
+                     "ORDER BY total_sold DESC LIMIT ?";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, limit);
-
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     ProductSales psale = new ProductSales();
@@ -193,5 +190,15 @@ public class BillDAO {
         }
         return topProducts;
     }
-    
+
+    public void updateProduct(Product product, Connection conn) throws SQLException {
+        String sql = "UPDATE product SET name=?, price=?, quantity=? WHERE product_id=?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, product.getName());
+            ps.setDouble(2, product.getPrice());
+            ps.setInt(3, product.getQuantity());
+            ps.setInt(4, product.getProductId());
+            ps.executeUpdate();
+        }
     }
+}

@@ -7,22 +7,28 @@ import com.pahanaedu.dao.DBConnectionFactory;
 import com.pahanaedu.model.AuditLog;
 
 public class AuditLogService {
+
     private static AuditLogService instance;
     private AuditLogDAO dao;
 
     private AuditLogService() {
-        dao = new AuditLogDAO();
+        // Use the Singleton instance of DAO
+        dao = AuditLogDAO.getInstance();
     }
 
+    // Double-checked locking for thread-safe singleton
     public static AuditLogService getInstance() {
         if (instance == null) {
             synchronized (AuditLogService.class) {
-                if (instance == null) instance = new AuditLogService();
+                if (instance == null) {
+                    instance = new AuditLogService();
+                }
             }
         }
         return instance;
     }
 
+    // Log action using singleton connection from DBConnectionFactory
     public void logAction(AuditLog log) throws SQLException {
         try (Connection conn = DBConnectionFactory.getConnection()) {
             dao.addAuditLog(log, conn);

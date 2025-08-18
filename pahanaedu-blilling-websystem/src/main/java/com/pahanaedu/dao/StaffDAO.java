@@ -10,30 +10,31 @@ import com.pahanaedu.model.Staff;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import org.mindrot.jbcrypt.BCrypt;
 
 import com.pahanaedu.dao.DBConnectionFactory;
 
 public class StaffDAO {
 
-    public void addStaff(Staff staff) throws SQLException {
-        String sql = "INSERT INTO staff (username, password, full_name, email, phone, nic, job_title, role, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = DBConnectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+	public void addStaff(Staff staff) throws SQLException {
+	    String sql = "INSERT INTO staff (username, password, full_name, email, phone, nic, job_title, role, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	    try (Connection conn = DBConnectionFactory.getConnection();
+	         PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setString(1, staff.getUsername());
-            ps.setString(2, staff.getPassword()); // ⚠ Hash in real project
-            ps.setString(3, staff.getFullName());
-            ps.setString(4, staff.getEmail());
-            ps.setString(5, staff.getPhone());
-            ps.setString(6, staff.getNic());
-            ps.setString(7, staff.getJobTitle());
-            ps.setString(8, staff.getRole());
-            ps.setString(9, staff.getStatus());
+	        ps.setString(1, staff.getUsername());
+	        String hashedPassword = BCrypt.hashpw(staff.getPassword(), BCrypt.gensalt());
+	        ps.setString(2, hashedPassword);
+	        ps.setString(3, staff.getFullName());
+	        ps.setString(4, staff.getEmail());
+	        ps.setString(5, staff.getPhone());
+	        ps.setString(6, staff.getNic());
+	        ps.setString(7, staff.getJobTitle());
+	        ps.setString(8, staff.getRole());
+	        ps.setString(9, staff.getStatus());
 
-            ps.executeUpdate();
-        }
-    }
-
+	        ps.executeUpdate();
+	    }
+	}
     public Staff validateLogin(String username, String password) {
         Staff staff = null;
         String sql = "SELECT * FROM staff WHERE username=? AND password=? AND status='active'";
@@ -66,25 +67,20 @@ public class StaffDAO {
     // Login: get staff by username and password
     public Staff login(String username, String password) {
         Staff staff = null;
-        String sql = "SELECT * FROM staff WHERE username = ? AND password = ? AND status = 'active'";
+        String sql = "SELECT * FROM staff WHERE username = ? AND status = 'active'";
 
         try (Connection conn = DBConnectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, username);
-            ps.setString(2, password);  // In production, hash the password and compare hashes!
+
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    staff = new Staff();
-                    staff.setStaffId(rs.getInt("staff_id"));
-                    staff.setUsername(rs.getString("username"));
-                    staff.setPassword(rs.getString("password"));
-                    staff.setFullName(rs.getString("full_name"));
-                    staff.setEmail(rs.getString("email"));
-                    staff.setPhone(rs.getString("phone"));  // Added
-                    staff.setNic(rs.getString("nic"));      // Added
-                    staff.setRole(rs.getString("role"));
-                    staff.setStatus(rs.getString("status"));
+                    String hashedPassword = rs.getString("password");
+                    // Compare entered password with hashed password
+                    if (BCrypt.checkpw(password, hashedPassword)) {
+                        staff = extractStaff(rs);
+                    }
                 }
             }
         } catch (Exception e) {
@@ -93,7 +89,6 @@ public class StaffDAO {
 
         return staff;
     }
-
     // Get staff by ID (for checking password or profile)
     public Staff getStaffById(int staffId) {
         Staff staff = null;
@@ -131,18 +126,17 @@ public class StaffDAO {
         try (Connection conn = DBConnectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setString(1, newPassword);  // Hash in production!
+            String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+            ps.setString(1, hashedPassword);
             ps.setInt(2, staffId);
 
-            int rowsUpdated = ps.executeUpdate();
-            return rowsUpdated > 0;
+            return ps.executeUpdate() > 0;
 
         } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
     }
-    
     
     
    
@@ -251,23 +245,40 @@ public class StaffDAO {
     }
 
     public boolean updateStaff(Staff staff) {
-        String sql = "UPDATE staff SET username=?, password=?, full_name=?, email=?, phone=?, nic=?, job_title=?, role=?, status=? WHERE staff_id=?";
+        String sql;
+        boolean hashPassword = false;
+
+        // If password field is not empty, hash it
+        if (staff.getPassword() != null && !staff.getPassword().isEmpty()) {
+            hashPassword = true;
+            sql = "UPDATE staff SET username=?, password=?, full_name=?, email=?, phone=?, nic=?, job_title=?, role=?, status=? WHERE staff_id=?";
+        } else {
+            // Password not changed, leave as is
+            sql = "UPDATE staff SET username=?, full_name=?, email=?, phone=?, nic=?, job_title=?, role=?, status=? WHERE staff_id=?";
+        }
 
         try (Connection conn = DBConnectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setString(1, staff.getUsername());
-            ps.setString(2, staff.getPassword()); // ⚠ Hash in production
-            ps.setString(3, staff.getFullName());
-            ps.setString(4, staff.getEmail());
-            ps.setString(5, staff.getPhone());
-            ps.setString(6, staff.getNic());
-            ps.setString(7, staff.getJobTitle());
-            ps.setString(8, staff.getRole());
-            ps.setString(9, staff.getStatus());
-            ps.setInt(10, staff.getStaffId());
+            int idx = 1;
+            ps.setString(idx++, staff.getUsername());
+
+            if (hashPassword) {
+                String hashedPassword = BCrypt.hashpw(staff.getPassword(), BCrypt.gensalt());
+                ps.setString(idx++, hashedPassword);
+            }
+
+            ps.setString(idx++, staff.getFullName());
+            ps.setString(idx++, staff.getEmail());
+            ps.setString(idx++, staff.getPhone());
+            ps.setString(idx++, staff.getNic());
+            ps.setString(idx++, staff.getJobTitle());
+            ps.setString(idx++, staff.getRole());
+            ps.setString(idx++, staff.getStatus());
+            ps.setInt(idx, staff.getStaffId());
 
             return ps.executeUpdate() > 0;
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -302,5 +313,35 @@ public class StaffDAO {
         staff.setRole(rs.getString("role"));
         staff.setStatus(rs.getString("status"));
         return staff;
+    }
+    public Staff getStaffByUsername(String username) {
+        Staff staff = null;
+        String sql = "SELECT * FROM staff WHERE username = ? AND status='active'";
+        try (Connection conn = DBConnectionFactory.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, username);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    staff = extractStaff(rs);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return staff;
+    }
+    public boolean updatePasswordWithHash(int staffId, String hashedPassword) {
+        String sql = "UPDATE staff SET password = ? WHERE staff_id = ?";
+        try (Connection conn = DBConnectionFactory.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, hashedPassword);
+            ps.setInt(2, staffId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }
