@@ -1,19 +1,19 @@
 package com.pahanaedu.service;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.List;
-
 import com.pahanaedu.dao.CustomerDAO;
 import com.pahanaedu.dao.DBConnectionFactory;
 import com.pahanaedu.model.Customer;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
 
 public class CustomerService {
     private static CustomerService instance;
     private CustomerDAO customerDAO;
 
     private CustomerService() {
-        this.customerDAO = new CustomerDAO();
+        this.customerDAO = CustomerDAO.getInstance();
     }
 
     public static CustomerService getInstance() {
@@ -63,14 +63,18 @@ public class CustomerService {
         }
     }
 
-    public int getTotalCustomers() throws SQLException {
-        return customerDAO.countCustomers();
+    public int getTotalCustomers(Connection conn) throws SQLException {
+        return customerDAO.countCustomers(conn);
     }
-    public List<Integer> getMonthlyNewCustomers(Connection conn, int months) throws Exception {
-        return customerDAO.getMonthlyNewCustomers(conn, months);
+    public List<Integer> getMonthlyNewCustomers(int months) throws SQLException {
+        try (Connection conn = DBConnectionFactory.getConnection()) {
+            return customerDAO.getMonthlyNewCustomers(conn, months);
+        }
     }
 
-    public List<String> getLastMonthsLabels(Connection conn, int months) throws Exception {
-        return customerDAO.getLastMonthsLabels(conn, months);
+    public List<String> getLastMonthsLabels(int months) throws SQLException {
+        try (Connection conn = DBConnectionFactory.getConnection()) {
+            return customerDAO.getLastMonthsLabels(conn, months);
+        }
     }
 }

@@ -237,9 +237,9 @@ public class CustomerController extends HttpServlet {
     }
     private void getMonthlyChartData(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int months = 6; // last 6 months
-        try (Connection conn = DBConnectionFactory.getConnection()) {
-            List<Integer> counts = customerService.getMonthlyNewCustomers(conn, months);
-            List<String> labels = customerService.getLastMonthsLabels(conn, months);
+        try {
+            List<Integer> counts = customerService.getMonthlyNewCustomers(months);
+            List<String> labels = customerService.getLastMonthsLabels(months);
 
             StringBuilder json = new StringBuilder("[");
             for (int i = 0; i < counts.size(); i++) {

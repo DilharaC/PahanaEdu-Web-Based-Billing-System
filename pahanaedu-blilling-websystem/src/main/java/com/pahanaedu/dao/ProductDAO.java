@@ -1,12 +1,30 @@
 package com.pahanaedu.dao;
 
+import com.pahanaedu.model.Product;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.pahanaedu.model.Product;
-
 public class ProductDAO {
+
+    // Singleton instance
+    private static ProductDAO instance;
+
+    private ProductDAO() {
+        // private constructor to prevent instantiation
+    }
+
+    public static ProductDAO getInstance() {
+        if (instance == null) {
+            synchronized (ProductDAO.class) {
+                if (instance == null) {
+                    instance = new ProductDAO();
+                }
+            }
+        }
+        return instance;
+    }
 
     public void addProduct(Product product, Connection conn) throws SQLException {
         String query = "INSERT INTO product (name, description, category, price, quantity, available) VALUES (?, ?, ?, ?, ?, ?)";
@@ -45,22 +63,22 @@ public class ProductDAO {
             }
         }
     }
+
     public List<Product> getAllProducts(Connection conn) throws SQLException {
         List<Product> products = new ArrayList<>();
         String query = "SELECT * FROM product";
 
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
-
             while (rs.next()) {
                 products.add(new Product(
-                    rs.getInt("product_id"),
-                    rs.getString("name"),
-                    rs.getString("description"),
-                    rs.getString("category"),
-                    rs.getDouble("price"),
-                    rs.getInt("quantity"),
-                    rs.getBoolean("available")
+                        rs.getInt("product_id"),
+                        rs.getString("name"),
+                        rs.getString("description"),
+                        rs.getString("category"),
+                        rs.getDouble("price"),
+                        rs.getInt("quantity"),
+                        rs.getBoolean("available")
                 ));
             }
         }
@@ -74,13 +92,13 @@ public class ProductDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return new Product(
-                        rs.getInt("product_id"),
-                        rs.getString("name"),
-                        rs.getString("description"),
-                        rs.getString("category"),
-                        rs.getDouble("price"),
-                        rs.getInt("quantity"),
-                        rs.getBoolean("available")
+                            rs.getInt("product_id"),
+                            rs.getString("name"),
+                            rs.getString("description"),
+                            rs.getString("category"),
+                            rs.getDouble("price"),
+                            rs.getInt("quantity"),
+                            rs.getBoolean("available")
                     );
                 }
             }
@@ -118,13 +136,13 @@ public class ProductDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     products.add(new Product(
-                        rs.getInt("product_id"),
-                        rs.getString("name"),
-                        rs.getString("description"),
-                        rs.getString("category"),
-                        rs.getDouble("price"),
-                        rs.getInt("quantity"),
-                        rs.getBoolean("available")
+                            rs.getInt("product_id"),
+                            rs.getString("name"),
+                            rs.getString("description"),
+                            rs.getString("category"),
+                            rs.getDouble("price"),
+                            rs.getInt("quantity"),
+                            rs.getBoolean("available")
                     ));
                 }
             }
@@ -137,7 +155,6 @@ public class ProductDAO {
         String query = "SELECT DISTINCT category FROM product";
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
-
             while (rs.next()) {
                 categories.add(rs.getString("category"));
             }
@@ -155,13 +172,13 @@ public class ProductDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     products.add(new Product(
-                        rs.getInt("product_id"),
-                        rs.getString("name"),
-                        rs.getString("description"),
-                        rs.getString("category"),
-                        rs.getDouble("price"),
-                        rs.getInt("quantity"),
-                        rs.getBoolean("available")
+                            rs.getInt("product_id"),
+                            rs.getString("name"),
+                            rs.getString("description"),
+                            rs.getString("category"),
+                            rs.getDouble("price"),
+                            rs.getInt("quantity"),
+                            rs.getBoolean("available")
                     ));
                 }
             }
@@ -180,27 +197,28 @@ public class ProductDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     products.add(new Product(
-                        rs.getInt("product_id"),
-                        rs.getString("name"),
-                        rs.getString("description"),
-                        rs.getString("category"),
-                        rs.getDouble("price"),
-                        rs.getInt("quantity"),
-                        rs.getBoolean("available")
+                            rs.getInt("product_id"),
+                            rs.getString("name"),
+                            rs.getString("description"),
+                            rs.getString("category"),
+                            rs.getDouble("price"),
+                            rs.getInt("quantity"),
+                            rs.getBoolean("available")
                     ));
                 }
             }
         }
         return products;
     }
-    public int countProducts() throws SQLException {
+
+    public int countProducts(Connection conn) throws SQLException {
         String query = "SELECT COUNT(*) FROM product";
-        try (Connection conn = DBConnectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(query);
+        try (PreparedStatement ps = conn.prepareStatement(query);
              ResultSet rs = ps.executeQuery()) {
             return rs.next() ? rs.getInt(1) : 0;
         }
     }
+
     public List<String> getTopSellingProductNames(Connection conn, int limit) throws SQLException {
         List<String> names = new ArrayList<>();
         String sql = "SELECT p.name, SUM(bi.quantity) AS total_qty " +

@@ -12,13 +12,20 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import com.pahanaedu.dao.AuditLogDAO;
+import com.pahanaedu.dao.DBConnectionFactory;
 import com.pahanaedu.model.AuditLog;
 
 @WebServlet("/AuditLog")
 public class AuditLogController extends HttpServlet {
     private static final long serialVersionUID = 1L;
     
-    private AuditLogDAO auditLogDAO = new AuditLogDAO();
+    private AuditLogDAO auditLogDAO;
+
+    @Override
+    public void init() throws ServletException {
+        // Use the Singleton DAO instance
+        auditLogDAO = AuditLogDAO.getInstance();
+    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -31,7 +38,7 @@ public class AuditLogController extends HttpServlet {
             return;
         }
 
-        try (Connection conn = com.pahanaedu.dao.DBConnection.getConnection()) {
+        try (Connection conn = DBConnectionFactory.getConnection()) { // Singleton-safe connection
             // Retrieve all audit logs
             List<AuditLog> auditLogs = auditLogDAO.getAllLogs(conn);
             request.setAttribute("auditLogs", auditLogs); // pass to JSP

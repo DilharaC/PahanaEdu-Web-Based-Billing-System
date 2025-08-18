@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -25,16 +26,21 @@ public class StaffService {
     }
 
     public Staff login(String username, String password) {
-        return staffDAO.validateLogin(username, password);
+        Staff staff = staffDAO.getStaffByUsername(username);
+        if (staff != null && BCrypt.checkpw(password, staff.getPassword())) {
+            return staff;
+        }
+        return null;
     }
 
     public boolean checkPassword(int staffId, String currentPassword) {
         Staff staff = staffDAO.getStaffById(staffId);
-        return staff != null && staff.getPassword().equals(currentPassword);
+        return staff != null && BCrypt.checkpw(currentPassword, staff.getPassword());
     }
 
     public boolean updatePassword(int staffId, String newPassword) {
-        return staffDAO.updatePassword(staffId, newPassword);
+        String hashed = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+        return staffDAO.updatePasswordWithHash(staffId, hashed);
     }
     
     public List<Staff> getAllStaff() {
