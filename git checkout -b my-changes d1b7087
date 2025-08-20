@@ -1,0 +1,34 @@
+[33md1b7087[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmy-changes[m[33m, [m[1;31morigin/my-changes[m[33m)[m HEAD@{0}: commit: add test cases
+[33m93f80d0[m HEAD@{1}: commit: test update
+[33m106e6e6[m HEAD@{2}: commit: fix all pattern types
+[33m6b142bb[m HEAD@{3}: commit: fix singleton pattern
+[33m14be171[m HEAD@{4}: commit: check errors in workflow
+[33mc5ba925[m HEAD@{5}: commit: add new
+[33m1b8df53[m HEAD@{6}: commit: Add ProductSales.java with correct package and imports
+[33m47166b7[m HEAD@{7}: commit: import file location
+[33md6ab556[m HEAD@{8}: commit: add product sales
+[33m2de38e9[m HEAD@{9}: commit: added admin dashbord and update ui ux design
+[33me03de06[m HEAD@{10}: commit: update audit log added bill log
+[33m33df135[m HEAD@{11}: commit: audit log added all managements
+[33me564205[m HEAD@{12}: commit: Restore stashed changes: added transaction history filter section
+[33m903bac9[m[33m ([m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{13}: rebase (finish): returning to refs/heads/my-changes
+[33m903bac9[m[33m ([m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{14}: rebase (start): checkout origin/master
+[33m6137c25[m HEAD@{15}: checkout: moving from master to my-changes
+[33mcb66ba7[m[33m ([m[1;32mmaster[m[33m)[m HEAD@{16}: commit: added password resnt link for change password
+[33mee98496[m HEAD@{17}: checkout: moving from my-changes to master
+[33m6137c25[m HEAD@{18}: reset: moving to HEAD
+[33m6137c25[m HEAD@{19}: commit: added transaction history filter  section
+[33m493025f[m HEAD@{20}: commit: update all jsp ui/ux design
+[33me4b4052[m HEAD@{21}: commit: added transaction history to staff dashboard
+[33m614c398[m HEAD@{22}: commit: update change password jsp
+[33m1cc598b[m HEAD@{23}: commit: print bill functions added
+[33mee98496[m HEAD@{24}: checkout: moving from master to my-changes
+[33mee98496[m HEAD@{25}: pull origin master --rebase (finish): returning to refs/heads/master
+[33mee98496[m HEAD@{26}: pull origin master --rebase (pick): added bill features staff dashboard
+[33m72827d4[m HEAD@{27}: pull origin master --rebase (pick): staff login added
+[33mf238884[m HEAD@{28}: pull origin master --rebase (start): checkout f2388841373c2fa7fe6890120cabfe04c333cc03
+[33m03f3025[m HEAD@{29}: commit: added bill features staff dashboard
+[33m8f28df5[m HEAD@{30}: commit: staff login added
+[33m94b2487[m HEAD@{31}: merge branch 'master' of https://github.com/DilharaC/PahanaEdu-Web-Based-Billing-System.git: Merge made by recursive.
+[33m3160d99[m HEAD@{32}: commit: added staff and admin login functions
+[33mf4cb344[m HEAD@{33}: commit (initial): added manage products and manage customer
