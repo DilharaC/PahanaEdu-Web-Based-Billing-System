@@ -1,23 +1,39 @@
 package com.pahanaedu.service;
 
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
 import org.mindrot.jbcrypt.BCrypt;
 
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-
 import com.pahanaedu.dao.StaffDAO;
 import com.pahanaedu.model.Staff;
 
 public class StaffService {
+
+  
+    private static StaffService instance;
+
+  
     private StaffDAO staffDAO = new StaffDAO();
+
+   
+    private StaffService() {}
+
+    
+    public static StaffService getInstance() {
+        if (instance == null) {
+            synchronized (StaffService.class) {
+                if (instance == null) {
+                    instance = new StaffService();
+                }
+            }
+        }
+        return instance;
+    }
 
    
 
@@ -26,11 +42,7 @@ public class StaffService {
     }
 
     public Staff login(String username, String password) {
-        Staff staff = staffDAO.getStaffByUsername(username);
-        if (staff != null && BCrypt.checkpw(password, staff.getPassword())) {
-            return staff;
-        }
-        return null;
+        return staffDAO.login(username, password);
     }
 
     public boolean checkPassword(int staffId, String currentPassword) {
@@ -42,7 +54,7 @@ public class StaffService {
         String hashed = BCrypt.hashpw(newPassword, BCrypt.gensalt());
         return staffDAO.updatePasswordWithHash(staffId, hashed);
     }
-    
+
     public List<Staff> getAllStaff() {
         return staffDAO.getAllStaff();
     }
@@ -59,21 +71,17 @@ public class StaffService {
         return staffDAO.deleteStaff(staffId);
     }
 
-   //forget password
+    // --- Forget password ---
+
     public String generatePasswordResetToken(String email) {
         Staff staff = staffDAO.findByEmail(email);
         if (staff == null) return null;
 
         String token = UUID.randomUUID().toString();
-
-        // Set expiry time (e.g., 1 hour from now)
         Timestamp expiry = Timestamp.from(Instant.now().plus(1, ChronoUnit.HOURS));
 
         boolean updated = staffDAO.updateResetTokenWithExpiry(staff.getStaffId(), token, expiry);
-        if (updated) {
-            return token;
-        }
-        return null;
+        return updated ? token : null;
     }
 
     public boolean resetPasswordByToken(String token, String newPassword) {
@@ -82,14 +90,10 @@ public class StaffService {
 
         boolean updatedPassword = staffDAO.updatePassword(staff.getStaffId(), newPassword);
         if (updatedPassword) {
-            // Clear token after successful reset
+            // Clear token
             staffDAO.updateResetTokenWithExpiry(staff.getStaffId(), null, null);
             return true;
         }
         return false;
     }
 }
-    
-
-   
-    

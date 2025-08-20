@@ -23,8 +23,8 @@ public class AuditLogController extends HttpServlet {
 
     @Override
     public void init() throws ServletException {
-        // Use the Singleton DAO instance
-        auditLogDAO = AuditLogDAO.getInstance();
+       
+    	 auditLogDAO = new AuditLogDAO();
     }
 
     @Override

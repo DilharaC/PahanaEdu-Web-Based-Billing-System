@@ -12,21 +12,10 @@ import com.pahanaedu.model.AuditLog;
 
 public class AuditLogDAO {
 
-    // Single instance of DAO
-    private static AuditLogDAO instance;
+ 
+    public AuditLogDAO() {}
 
-    // Private constructor prevents instantiation
-    private AuditLogDAO() {}
-
-    // Public method to get the single instance
-    public static synchronized AuditLogDAO getInstance() {
-        if (instance == null) {
-            instance = new AuditLogDAO();
-        }
-        return instance;
-    }
-
-    // Add a new audit log
+    
     public void addAuditLog(AuditLog log, Connection conn) throws SQLException {
         String sql = "INSERT INTO audit_log (action, performed_by, target_entity, target_id, details, timestamp) " +
                      "VALUES (?, ?, ?, ?, ?, ?)";
@@ -36,7 +25,7 @@ public class AuditLogDAO {
             ps.setString(3, log.getTargetEntity());
             ps.setInt(4, log.getTargetId());
             ps.setString(5, log.getDetails());
-            ps.setTimestamp(6, Timestamp.valueOf(log.getTimestamp())); // safer conversion
+            ps.setTimestamp(6, Timestamp.valueOf(log.getTimestamp()));
             ps.executeUpdate();
         }
     }
@@ -80,7 +69,7 @@ public class AuditLogDAO {
                 String likeSearch = "%" + search + "%";
                 ps.setString(index++, likeSearch);
                 ps.setString(index++, likeSearch);
-                ps.setString(index++, likeSearch); // include details in search
+                ps.setString(index++, likeSearch);
             }
 
             if (category != null && !category.trim().isEmpty()) {

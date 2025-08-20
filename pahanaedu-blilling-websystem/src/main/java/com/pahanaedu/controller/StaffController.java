@@ -27,9 +27,8 @@ public class StaffController extends HttpServlet {
 
     @Override
     public void init() throws ServletException {
-        staffService = new StaffService();
+        staffService = StaffService.getInstance();
     }
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");

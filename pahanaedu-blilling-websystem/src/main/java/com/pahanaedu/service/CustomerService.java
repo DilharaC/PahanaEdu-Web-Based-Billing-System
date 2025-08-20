@@ -9,11 +9,13 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class CustomerService {
-    private static CustomerService instance;
-    private CustomerDAO customerDAO;
+
+    // ---------------- SINGLETON ----------------
+    private static volatile CustomerService instance; // volatile = safe for multithreading
+    private final CustomerDAO customerDAO;
 
     private CustomerService() {
-        this.customerDAO = CustomerDAO.getInstance();
+        this.customerDAO = new CustomerDAO();
     }
 
     public static CustomerService getInstance() {
@@ -27,6 +29,7 @@ public class CustomerService {
         return instance;
     }
 
+    // ---------------- CRUD OPERATIONS ----------------
     public int addCustomer(Customer customer) throws SQLException {
         try (Connection conn = DBConnectionFactory.getConnection()) {
             return customerDAO.addCustomer(customer, conn);
@@ -57,15 +60,18 @@ public class CustomerService {
         }
     }
 
+    // ---------------- SEARCH ----------------
     public List<Customer> searchCustomersByPhone(String phone) throws SQLException {
         try (Connection conn = DBConnectionFactory.getConnection()) {
             return customerDAO.searchCustomersByPhone(phone, conn);
         }
     }
 
+    // ---------------- STATS ----------------
     public int getTotalCustomers(Connection conn) throws SQLException {
         return customerDAO.countCustomers(conn);
     }
+
     public List<Integer> getMonthlyNewCustomers(int months) throws SQLException {
         try (Connection conn = DBConnectionFactory.getConnection()) {
             return customerDAO.getMonthlyNewCustomers(conn, months);

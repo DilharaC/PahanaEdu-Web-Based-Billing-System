@@ -102,6 +102,23 @@
         .back-link:hover {
             text-decoration: underline;
         }
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .error-message {
+            background: #ffcdd2;
+            color: #b71c1c;
+        }
+        .success-message {
+            background: #c8e6c9;
+            color: #1b5e20;
+        }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -112,6 +129,20 @@
 
 <div class="container">
     <h1><i class='bx bxs-user'></i> Add Customer</h1>
+
+    <!-- ✅ Error / Success Messages -->
+    <c:if test="${not empty errorMessage}">
+        <div class="message error-message">
+            <i class='bx bx-error-circle'></i> ${errorMessage}
+        </div>
+    </c:if>
+
+    <c:if test="${not empty param.success}">
+        <div class="message success-message">
+            <i class='bx bx-check-circle'></i> ${param.success}
+        </div>
+    </c:if>
+
     <form action="Customer?action=add" method="post">
 
         <label for="name"><i class='bx bx-user'></i> Full Name</label>

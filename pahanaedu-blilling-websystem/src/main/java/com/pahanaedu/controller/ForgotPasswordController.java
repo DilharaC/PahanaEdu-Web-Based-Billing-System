@@ -21,7 +21,7 @@ import com.pahanaedu.service.StaffService;
 @WebServlet("/ForgotPassword")
 public class ForgotPasswordController extends HttpServlet {
 
-    private StaffService staffService = new StaffService();
+	private StaffService staffService = StaffService.getInstance();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

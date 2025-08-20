@@ -4,7 +4,7 @@ public class BillItem {
     private Product product;
     private int quantity;
     private double price;
-    private double total; // ✅ added
+    private double total; 
 
     public BillItem() {}
 
@@ -12,7 +12,7 @@ public class BillItem {
         this.product = product;
         this.quantity = quantity;
         this.price = price;
-        this.total = quantity * price; // auto set
+        this.total = quantity * price; 
     }
 
     public Product getProduct() { return product; }
@@ -21,15 +21,15 @@ public class BillItem {
     public int getQuantity() { return quantity; }
     public void setQuantity(int quantity) { 
         this.quantity = quantity; 
-        this.total = this.quantity * this.price; // recalc total
+        this.total = this.quantity * this.price; 
     }
 
     public double getPrice() { return price; }
     public void setPrice(double price) { 
         this.price = price; 
-        this.total = this.quantity * this.price; // recalc total
+        this.total = this.quantity * this.price; 
     }
 
     public double getTotal() { return total; }
-    public void setTotal(double total) { this.total = total; } // ✅ added
+    public void setTotal(double total) { this.total = total; } 
 }
