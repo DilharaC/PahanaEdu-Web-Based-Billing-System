@@ -5,6 +5,7 @@ import com.pahanaedu.dao.ProductDAO;
 import com.pahanaedu.model.*;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
@@ -30,49 +31,25 @@ public class BillService {
         return instance;
     }
 
-    public Bill createBill(Customer customer, List<BillItem> items, int staffId, Connection conn) throws Exception {
-        if (items == null || items.isEmpty()) {
-            throw new Exception("No items to create bill");
-        }
-
-        double total = 0;
-        for (BillItem item : items) {
-            Product p = item.getProduct();
-            if (p.getQuantity() < item.getQuantity()) {
-                throw new Exception("Insufficient stock for product: " + p.getName());
-            }
-            total += item.getTotal();
-        }
-
+    /**
+     * Create a new bill (no transaction handling here).
+     * The controller is responsible for commit/rollback.
+     */
+    public Bill createBill(Customer customer, List<BillItem> items, int staffId, Connection conn) throws SQLException {
         Bill bill = new Bill();
         bill.setCustomer(customer);
         bill.setStaffId(staffId);
-        bill.setBillDate(new Date());
-        bill.setTotalAmount(total);
         bill.setItems(items);
 
-        boolean previousAutoCommit = conn.getAutoCommit();
-        conn.setAutoCommit(false);
-        try {
-            // Reduce stock
-            for (BillItem item : items) {
-                Product p = item.getProduct();
-                p.setQuantity(p.getQuantity() - item.getQuantity());
-                productDAO.updateProduct(p, conn);
-            }
+        double total = items.stream()
+                .mapToDouble(i -> i.getPrice() * i.getQuantity())
+                .sum();
+        bill.setTotalAmount(total);
+        bill.setBillDate(new java.util.Date());
 
-            // Create bill and get full details BEFORE commit
-            int billId = billDAO.createBill(bill, conn);
-            Bill fullBill = billDAO.getBillById(billId, conn);
+        int billId = billDAO.createBill(bill, conn);
+        bill.setBillId(billId);
 
-            conn.commit();
-            return fullBill;
-
-        } catch (Exception e) {
-            conn.rollback();
-            throw e;
-        } finally {
-            conn.setAutoCommit(previousAutoCommit);
-        }
+        return bill;
     }
 }

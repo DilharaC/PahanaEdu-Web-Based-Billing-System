@@ -18,10 +18,10 @@ import java.util.List;
 public class BillController extends HttpServlet {
 
 
-    private final BillService billService = BillService.getInstance(); // ✅ Singleton
-    private final BillDAO billDAO = new BillDAO();                     // ✅ plain object
-    private final CustomerDAO customerDAO = new CustomerDAO();         // ✅ plain object
-    private final ProductDAO productDAO = new ProductDAO();            // ✅ plain object
+    private final BillService billService = BillService.getInstance(); 
+    private final BillDAO billDAO = new BillDAO();                     
+    private final CustomerDAO customerDAO = new CustomerDAO();         
+    private final ProductDAO productDAO = new ProductDAO();           
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
@@ -80,10 +80,12 @@ public class BillController extends HttpServlet {
 
         try {
             conn = DBConnectionFactory.getConnection();
-            conn.setAutoCommit(false); // start transaction
+            conn.setAutoCommit(false); // ✅ Start transaction
 
             int customerId = Integer.parseInt(request.getParameter("customerId").trim());
-            Customer customer = CustomerService.getInstance().getCustomerById(customerId);
+
+            // ✅ Use same connection to fetch customer (avoid closing issue)
+            Customer customer = customerDAO.getCustomerById(customerId, conn);
             if (customer == null) throw new ServletException("Customer not found.");
 
             Integer staffId = (Integer) request.getSession().getAttribute("staffId");
@@ -108,10 +110,13 @@ public class BillController extends HttpServlet {
 
             if (items.isEmpty()) throw new ServletException("No valid products to create bill.");
 
-            // ✅ Create bill and get full bill (with items) in one step
+            // ✅ Create bill with the same connection
             Bill fullBill = billService.createBill(customer, items, staffId, conn);
 
-            // Audit log
+            // ✅ Commit transaction
+            conn.commit();
+
+            // ✅ Now log audit (separate connection, safe to run after commit)
             AuditLog log = new AuditLog();
             log.setAction("Create Bill");
             log.setPerformedBy("Staff ID: " + staffId);
@@ -126,8 +131,10 @@ public class BillController extends HttpServlet {
             }
             if (details.length() > 2) details.setLength(details.length() - 2);
             log.setDetails(details.toString());
+
             AuditLogService.getInstance().logAction(log);
 
+            // ✅ Forward success page
             request.setAttribute("bill", fullBill);
             request.getRequestDispatcher("/WEB-INF/view/bill_success.jsp").forward(request, response);
 

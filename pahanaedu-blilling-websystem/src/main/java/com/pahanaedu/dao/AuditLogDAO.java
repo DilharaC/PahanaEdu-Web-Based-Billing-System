@@ -12,10 +12,10 @@ import com.pahanaedu.model.AuditLog;
 
 public class AuditLogDAO {
 
-    // ✅ No singleton, just a normal DAO class
+ 
     public AuditLogDAO() {}
 
-    // Add a new audit log
+    
     public void addAuditLog(AuditLog log, Connection conn) throws SQLException {
         String sql = "INSERT INTO audit_log (action, performed_by, target_entity, target_id, details, timestamp) " +
                      "VALUES (?, ?, ?, ?, ?, ?)";

@@ -14,6 +14,9 @@ public class BillDAO {
     // ----------------- CREATE BILL -----------------
     public int createBill(Bill bill, Connection conn) throws SQLException {
         String billQuery = "INSERT INTO bill (customer_id, staff_id, bill_date, total_amount) VALUES (?, ?, ?, ?)";
+        String itemQuery = "INSERT INTO bill_item (bill_id, product_id, quantity, price) VALUES (?, ?, ?, ?)";
+        int billId;
+
         try (PreparedStatement billPs = conn.prepareStatement(billQuery, Statement.RETURN_GENERATED_KEYS)) {
             billPs.setInt(1, bill.getCustomer().getCustomerId());
             billPs.setInt(2, bill.getStaffId());
@@ -23,10 +26,8 @@ public class BillDAO {
 
             try (ResultSet rs = billPs.getGeneratedKeys()) {
                 if (rs.next()) {
-                    int billId = rs.getInt(1);
+                    billId = rs.getInt(1);
 
-                    // Insert bill items
-                    String itemQuery = "INSERT INTO bill_item (bill_id, product_id, quantity, price) VALUES (?, ?, ?, ?)";
                     try (PreparedStatement itemPs = conn.prepareStatement(itemQuery)) {
                         for (BillItem item : bill.getItems()) {
                             itemPs.setInt(1, billId);
@@ -37,12 +38,13 @@ public class BillDAO {
                         }
                         itemPs.executeBatch();
                     }
-                    return billId;
                 } else {
                     throw new SQLException("Failed to retrieve generated bill ID");
                 }
             }
         }
+
+        return billId; // ❌ No commit or rollback here
     }
 
     // ----------------- GET ALL BILLS -----------------

@@ -14,16 +14,16 @@ import com.pahanaedu.model.Staff;
 
 public class StaffService {
 
-    // --- Singleton instance ---
+  
     private static StaffService instance;
 
-    // DAO instance (no singleton here)
+  
     private StaffDAO staffDAO = new StaffDAO();
 
-    // private constructor so no one can call "new StaffService()"
+   
     private StaffService() {}
 
-    // Public method to get the only instance
+    
     public static StaffService getInstance() {
         if (instance == null) {
             synchronized (StaffService.class) {
@@ -35,18 +35,14 @@ public class StaffService {
         return instance;
     }
 
-    // --- Service methods ---
+   
 
     public void createStaff(Staff staff) throws SQLException {
         staffDAO.addStaff(staff);
     }
 
     public Staff login(String username, String password) {
-        Staff staff = staffDAO.getStaffByUsername(username);
-        if (staff != null && BCrypt.checkpw(password, staff.getPassword())) {
-            return staff;
-        }
-        return null;
+        return staffDAO.login(username, password);
     }
 
     public boolean checkPassword(int staffId, String currentPassword) {

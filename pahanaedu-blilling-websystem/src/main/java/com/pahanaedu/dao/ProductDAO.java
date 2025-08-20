@@ -93,7 +93,7 @@ public class ProductDAO {
         return null;
     }
 
-    public void updateProduct(Product product, Connection conn) throws SQLException {
+    public boolean updateProduct(Product product, Connection conn) throws SQLException {
         String query = "UPDATE product SET name=?, description=?, category=?, price=?, quantity=?, available=? WHERE product_id=?";
         try (PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setString(1, product.getName());
@@ -103,7 +103,8 @@ public class ProductDAO {
             ps.setInt(5, product.getQuantity());
             ps.setBoolean(6, product.isAvailable());
             ps.setInt(7, product.getProductId());
-            ps.executeUpdate();
+
+            return ps.executeUpdate() > 0; // true if at least one row updated
         }
     }
 

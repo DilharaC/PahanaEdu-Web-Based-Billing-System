@@ -8,10 +8,9 @@ import com.pahanaedu.model.Staff;
 
 public class StaffDAO {
 
-    // ✅ No Singleton anymore → plain constructor
     public StaffDAO() {}
 
-    // Add staff
+    // === Add new staff ===
     public void addStaff(Staff staff) throws SQLException {
         String sql = "INSERT INTO staff (username, password, full_name, email, phone, nic, job_title, role, status) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -33,29 +32,7 @@ public class StaffDAO {
         }
     }
 
-    // Validate login (⚠ keep only if needed, better use hashed login method)
-    public Staff validateLogin(String username, String password) {
-        Staff staff = null;
-        String sql = "SELECT * FROM staff WHERE username=? AND password=? AND status='active'";
-
-        try (Connection conn = DBConnectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, username);
-            ps.setString(2, password); // ⚠ not secure → for backward compatibility only
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    staff = extractStaff(rs);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return staff;
-    }
-
-    // Secure login with hashed password
+    // === Secure login with BCrypt ===
     public Staff login(String username, String password) {
         Staff staff = null;
         String sql = "SELECT * FROM staff WHERE username = ? AND status = 'active'";
@@ -68,38 +45,40 @@ public class StaffDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     String hashedPassword = rs.getString("password");
+
                     if (BCrypt.checkpw(password, hashedPassword)) {
                         staff = extractStaff(rs);
+                        staff.setPassword(null); // 🚫 Don’t expose hash outside DAO
                     }
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace(); // TODO: replace with proper logging
         }
         return staff;
     }
 
-    // Get staff by ID
+    // === Get staff by ID ===
     public Staff getStaffById(int staffId) {
-        Staff staff = null;
         String sql = "SELECT * FROM staff WHERE staff_id = ?";
-
         try (Connection conn = DBConnectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, staffId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    staff = extractStaff(rs);
+                    Staff staff = extractStaff(rs);
+                    staff.setPassword(null);
+                    return staff;
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return staff;
+        return null;
     }
 
-    // Update password
+    // === Update password (raw) ===
     public boolean updatePassword(int staffId, String newPassword) {
         String sql = "UPDATE staff SET password = ? WHERE staff_id = ?";
         try (Connection conn = DBConnectionFactory.getConnection();
@@ -116,9 +95,8 @@ public class StaffDAO {
         return false;
     }
 
-    // Find staff by email
+    // === Find staff by email ===
     public Staff findByEmail(String email) {
-        Staff staff = null;
         String sql = "SELECT * FROM staff WHERE email = ?";
         try (Connection conn = DBConnectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -126,16 +104,18 @@ public class StaffDAO {
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    staff = extractStaff(rs);
+                    Staff staff = extractStaff(rs);
+                    staff.setPassword(null);
+                    return staff;
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return staff;
+        return null;
     }
 
-    // Update reset token
+    // === Reset token methods ===
     public boolean updateResetToken(int staffId, String token) {
         String sql = "UPDATE staff SET reset_token = ? WHERE staff_id = ?";
         try (Connection conn = DBConnectionFactory.getConnection();
@@ -150,9 +130,7 @@ public class StaffDAO {
         return false;
     }
 
-    // Find by reset token
     public Staff findByResetToken(String token) {
-        Staff staff = null;
         String sql = "SELECT * FROM staff WHERE reset_token = ? AND reset_token_expiry > CURRENT_TIMESTAMP";
         try (Connection conn = DBConnectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -160,13 +138,15 @@ public class StaffDAO {
             ps.setString(1, token);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    staff = extractStaff(rs);
+                    Staff staff = extractStaff(rs);
+                    staff.setPassword(null);
+                    return staff;
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return staff;
+        return null;
     }
 
     public boolean updateResetTokenWithExpiry(int staffId, String token, Timestamp expiry) {
@@ -188,7 +168,7 @@ public class StaffDAO {
         return false;
     }
 
-    // Get all staff
+    // === Get all staff ===
     public List<Staff> getAllStaff() {
         List<Staff> staffList = new ArrayList<>();
         String sql = "SELECT * FROM staff";
@@ -197,7 +177,9 @@ public class StaffDAO {
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                staffList.add(extractStaff(rs));
+                Staff staff = extractStaff(rs);
+                staff.setPassword(null);
+                staffList.add(staff);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -205,7 +187,7 @@ public class StaffDAO {
         return staffList;
     }
 
-    // Update staff
+    // === Update staff ===
     public boolean updateStaff(Staff staff) {
         String sql;
         boolean hashPassword = false;
@@ -244,7 +226,7 @@ public class StaffDAO {
         return false;
     }
 
-    // Delete staff
+    // === Delete staff ===
     public boolean deleteStaff(int staffId) {
         String sql = "DELETE FROM staff WHERE staff_id = ?";
         try (Connection conn = DBConnectionFactory.getConnection();
@@ -258,25 +240,8 @@ public class StaffDAO {
         return false;
     }
 
-    // === Helper method ===
-    private Staff extractStaff(ResultSet rs) throws SQLException {
-        Staff staff = new Staff();
-        staff.setStaffId(rs.getInt("staff_id"));
-        staff.setUsername(rs.getString("username"));
-        staff.setPassword(rs.getString("password"));
-        staff.setFullName(rs.getString("full_name"));
-        staff.setEmail(rs.getString("email"));
-        staff.setPhone(rs.getString("phone"));
-        staff.setNic(rs.getString("nic"));
-        staff.setJobTitle(rs.getString("job_title"));
-        staff.setRole(rs.getString("role"));
-        staff.setStatus(rs.getString("status"));
-        return staff;
-    }
-
-    // Get staff by username
+    // === Get staff by username ===
     public Staff getStaffByUsername(String username) {
-        Staff staff = null;
         String sql = "SELECT * FROM staff WHERE username = ? AND status='active'";
         try (Connection conn = DBConnectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -284,16 +249,18 @@ public class StaffDAO {
             ps.setString(1, username);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    staff = extractStaff(rs);
+                    Staff staff = extractStaff(rs);
+                    staff.setPassword(null);
+                    return staff;
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return staff;
+        return null;
     }
 
-    // Update password with already-hashed value
+    // === Update password with already-hashed value ===
     public boolean updatePasswordWithHash(int staffId, String hashedPassword) {
         String sql = "UPDATE staff SET password = ? WHERE staff_id = ?";
         try (Connection conn = DBConnectionFactory.getConnection();
@@ -306,5 +273,21 @@ public class StaffDAO {
             e.printStackTrace();
         }
         return false;
+    }
+
+    // === Helper method ===
+    private Staff extractStaff(ResultSet rs) throws SQLException {
+        Staff staff = new Staff();
+        staff.setStaffId(rs.getInt("staff_id"));
+        staff.setUsername(rs.getString("username"));
+        staff.setFullName(rs.getString("full_name"));
+        staff.setEmail(rs.getString("email"));
+        staff.setPhone(rs.getString("phone"));
+        staff.setNic(rs.getString("nic"));
+        staff.setJobTitle(rs.getString("job_title"));
+        staff.setRole(rs.getString("role"));
+        staff.setStatus(rs.getString("status"));
+        // 🚫 Do not set password hash into Staff
+        return staff;
     }
 }

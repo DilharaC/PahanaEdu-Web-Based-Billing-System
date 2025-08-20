@@ -8,7 +8,7 @@ import java.util.List;
 
 public class CustomerDAO {
 
-    // ✅ No Singleton instance anymore
+   
     public CustomerDAO() {}
 
     public int addCustomer(Customer customer, Connection conn) throws SQLException {
@@ -21,15 +21,17 @@ public class CustomerDAO {
             ps.setString(3, customer.getPhone());
             ps.setString(4, customer.getAddress());
             ps.setBoolean(5, customer.isActive());
+
             ps.executeUpdate();
 
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) return rs.getInt(1);
             }
+        } catch (SQLIntegrityConstraintViolationException e) {
+            throw new SQLException("Phone number already exists: " + customer.getPhone(), e);
         }
         return -1;
     }
-
     public List<Customer> getAllCustomers(Connection conn) throws SQLException {
         List<Customer> customers = new ArrayList<>();
         String query = "SELECT * FROM customer";

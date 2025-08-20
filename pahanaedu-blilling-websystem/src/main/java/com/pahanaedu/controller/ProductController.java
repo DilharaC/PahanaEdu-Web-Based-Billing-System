@@ -52,7 +52,7 @@ public class ProductController extends HttpServlet {
    
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
 
         try {
@@ -146,38 +146,46 @@ public class ProductController extends HttpServlet {
         response.sendRedirect("Product?action=list");
     }
 
-    private void updateProduct(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException, ServletException {
+    private void updateProduct(HttpServletRequest request, HttpServletResponse response) 
+            throws SQLException, IOException, ServletException {
+
         int productId = Integer.parseInt(request.getParameter("productId"));
-        
+
         // Get existing product from DB
         Product oldProduct = productService.getProductById(productId);
-        
+
         // Get new values from request
         Product newProduct = extractProductFromRequest(request);
         newProduct.setProductId(productId);
-        
+
         // Update product in DB
         productService.updateProduct(newProduct);
 
         // Build details string for audit log
         StringBuilder changes = new StringBuilder();
         if (!oldProduct.getName().equals(newProduct.getName())) {
-            changes.append("Name: '").append(oldProduct.getName()).append("' → '").append(newProduct.getName()).append("'; ");
+            changes.append("Name: '").append(oldProduct.getName()).append("' → '")
+                   .append(newProduct.getName()).append("'; ");
         }
         if (!oldProduct.getDescription().equals(newProduct.getDescription())) {
-            changes.append("Description: '").append(oldProduct.getDescription()).append("' → '").append(newProduct.getDescription()).append("'; ");
+            changes.append("Description: '").append(oldProduct.getDescription()).append("' → '")
+                   .append(newProduct.getDescription()).append("'; ");
         }
         if (!oldProduct.getCategory().equals(newProduct.getCategory())) {
-            changes.append("Category: '").append(oldProduct.getCategory()).append("' → '").append(newProduct.getCategory()).append("'; ");
+            changes.append("Category: '").append(oldProduct.getCategory()).append("' → '")
+                   .append(newProduct.getCategory()).append("'; ");
         }
         if (oldProduct.getPrice() != newProduct.getPrice()) {
-            changes.append("Price: ").append(oldProduct.getPrice()).append(" → ").append(newProduct.getPrice()).append("; ");
+            changes.append("Price: ").append(oldProduct.getPrice()).append(" → ")
+                   .append(newProduct.getPrice()).append("; ");
         }
         if (oldProduct.getQuantity() != newProduct.getQuantity()) {
-            changes.append("Quantity: ").append(oldProduct.getQuantity()).append(" → ").append(newProduct.getQuantity()).append("; ");
+            changes.append("Quantity: ").append(oldProduct.getQuantity()).append(" → ")
+                   .append(newProduct.getQuantity()).append("; ");
         }
         if (oldProduct.isAvailable() != newProduct.isAvailable()) {
-            changes.append("Available: ").append(oldProduct.isAvailable()).append(" → ").append(newProduct.isAvailable()).append("; ");
+            changes.append("Available: ").append(oldProduct.isAvailable()).append(" → ")
+                   .append(newProduct.isAvailable()).append("; ");
         }
 
         // Audit log
@@ -193,6 +201,9 @@ public class ProductController extends HttpServlet {
         log.setTargetEntity("Product");
         log.setTargetId(productId);
         log.setDetails(changes.toString().isEmpty() ? "No changes made" : changes.toString());
+        log.setTimestamp(java.time.LocalDateTime.now());
+
+        // Write audit entry
         AuditLogService.getInstance().logAction(log);
 
         response.sendRedirect("Product?action=list");
