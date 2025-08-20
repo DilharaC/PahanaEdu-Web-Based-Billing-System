@@ -26,7 +26,6 @@ public class AuditLogController extends HttpServlet {
        
     	 auditLogDAO = new AuditLogDAO();
     }
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
